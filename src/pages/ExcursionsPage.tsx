@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { View, Text, Grid, TextField, Button, Badge, Loader } from 'reshaped'
 import { fetchExcursions } from '../api'
 import type { ExcursionDto } from '../api'
 
@@ -64,89 +65,159 @@ export function ExcursionsPage() {
     const locale = i18n.language?.startsWith('de') ? 'de-DE' : i18n.language?.startsWith('en') ? 'en-GB' : 'bg-BG'
 
     return (
-        <div className="page">
-            <div className="page-header">
-                <h1>{t('excursions.title')}</h1>
-                <p>{t('excursions.subtitle')}</p>
-            </div>
+        <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
+            <View gap={1} paddingBottom={8}>
+                <Text as="h1" variant="title-1" weight="bold">{t('excursions.title')}</Text>
+                <Text variant="body-2" color="neutral-faded">{t('excursions.subtitle')}</Text>
+            </View>
 
             {/* Type chips */}
             {types.length > 0 && (
-                <div className="chips">
-                    <button className={`chip${typeFilter === 'all' ? ' chip-active' : ''}`} onClick={() => setTypeFilter('all')}>
+                <View direction="row" gap={2} wrap paddingBottom={6}>
+                    <Button
+                        variant={typeFilter === 'all' ? 'solid' : 'outline'}
+                        color={typeFilter === 'all' ? 'primary' : 'neutral'}
+                        size="small"
+                        onClick={() => setTypeFilter('all')}
+                    >
                         {t('excursions.allTypes')}
-                    </button>
+                    </Button>
                     {types.map((type: string) => (
-                        <button key={type} className={`chip${typeFilter === type ? ' chip-active' : ''}`} onClick={() => setTypeFilter(type)}>
+                        <Button
+                            key={type}
+                            variant={typeFilter === type ? 'solid' : 'outline'}
+                            color={typeFilter === type ? 'primary' : 'neutral'}
+                            size="small"
+                            onClick={() => setTypeFilter(type)}
+                        >
                             {TYPE_EMOJI[type] ?? ''} {t(`home.categories.${type}`, type)}
-                        </button>
+                        </Button>
                     ))}
-                </div>
+                </View>
             )}
 
-            {/* Filters bar */}
-            <div className="filters-bar">
-                <div className="filters-row">
-                    <div className="filter-group" style={{ flex: 2, minWidth: 200 }}>
-                        <label className="filter-label">🔍</label>
-                        <input className="filter-input" value={q} onChange={e => setQ(e.target.value)} placeholder={`${t('excursions.title')}…`} />
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">{t('excursions.filterSort')} min ({t('common.bgn')})</label>
-                        <input className="filter-input" type="number" min="0" value={priceMin} onChange={e => setPriceMin(e.target.value)} placeholder="0" />
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">{t('excursions.filterSort')} max ({t('common.bgn')})</label>
-                        <input className="filter-input" type="number" min="0" value={priceMax} onChange={e => setPriceMax(e.target.value)} placeholder="9999" />
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">{t('excursions.date')} from</label>
-                        <input className="filter-input" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">{t('excursions.date')} to</label>
-                        <input className="filter-input" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
-                    </div>
+            {/* Filters */}
+            <View shadow="raised" padding={5} borderRadius="medium" backgroundColor="white" paddingBottom={6}>
+                <View direction={{ s: 'column', m: 'row' }} gap={4} wrap>
+                    <View grow>
+                        <TextField
+                            name="search"
+                            placeholder={`${t('excursions.title')}…`}
+                            value={q}
+                            onChange={({ value }) => setQ(value)}
+                            prefix="🔍"
+                        />
+                    </View>
+                    <View minWidth="120px">
+                        <View gap={1}>
+                            <Text variant="caption-1">{t('excursions.filterSort')} min ({t('common.bgn')})</Text>
+                            <TextField
+                                name="priceMin"
+                                placeholder="0"
+                                value={priceMin}
+                                onChange={({ value }) => setPriceMin(value)}
+                                inputAttributes={{ type: 'number' }}
+                            />
+                        </View>
+                    </View>
+                    <View minWidth="120px">
+                        <View gap={1}>
+                            <Text variant="caption-1">{t('excursions.filterSort')} max ({t('common.bgn')})</Text>
+                            <TextField
+                                name="priceMax"
+                                placeholder="9999"
+                                value={priceMax}
+                                onChange={({ value }) => setPriceMax(value)}
+                                inputAttributes={{ type: 'number' }}
+                            />
+                        </View>
+                    </View>
+                    <View minWidth="140px">
+                        <View gap={1}>
+                            <Text variant="caption-1">{t('excursions.date')} from</Text>
+                            <TextField
+                                name="dateFrom"
+                                value={dateFrom}
+                                onChange={({ value }) => setDateFrom(value)}
+                                inputAttributes={{ type: 'date' }}
+                            />
+                        </View>
+                    </View>
+                    <View minWidth="140px">
+                        <View gap={1}>
+                            <Text variant="caption-1">{t('excursions.date')} to</Text>
+                            <TextField
+                                name="dateTo"
+                                value={dateTo}
+                                onChange={({ value }) => setDateTo(value)}
+                                inputAttributes={{ type: 'date' }}
+                            />
+                        </View>
+                    </View>
                     {hasFilters && (
-                        <div className="filter-group" style={{ justifyContent: 'flex-end' }}>
-                            <label className="filter-label">&nbsp;</label>
-                            <button className="filter-clear" onClick={clearFilters}>✕</button>
-                        </div>
+                        <View justify="end">
+                            <Button variant="ghost" color="primary" onClick={clearFilters}>✕</Button>
+                        </View>
                     )}
-                </div>
-            </div>
+                </View>
+            </View>
 
             {/* States */}
             {state.status === 'loading' && (
-                <div className="empty-state"><div className="empty-icon">⏳</div><div className="empty-text">{t('excursions.loading')}</div></div>
+                <View align="center" padding={16}><Loader size="large" /></View>
             )}
             {state.status === 'error' && (
-                <div className="empty-state" style={{ color: '#e53e3e' }}><div className="empty-icon">⚠️</div><div className="empty-text">{state.message}</div></div>
+                <View align="center" padding={16} gap={3}>
+                    <Text variant="title-2">⚠️</Text>
+                    <Text color="critical">{state.message}</Text>
+                </View>
             )}
             {state.status === 'success' && filtered.length === 0 && (
-                <div className="empty-state"><div className="empty-icon">🔍</div><div className="empty-text">{t('excursions.noResults')}</div></div>
+                <View align="center" padding={16} gap={3}>
+                    <Text variant="title-2">🔍</Text>
+                    <Text color="neutral-faded">{t('excursions.noResults')}</Text>
+                </View>
             )}
 
             {/* Cards grid */}
-            <div className="cards-grid">
+            <Grid columns={{ s: 1, m: 2, l: 3 }} gap={6}>
                 {filtered.map((x: ExcursionDto) => (
-                    <div key={x.id} className="tour-card" onClick={() => navigate(`/excursions/${x.id}`)}>
-                        <div className="tour-card-img-placeholder">{TYPE_EMOJI[x.type] ?? '🗺️'}</div>
-                        <div className="tour-card-body">
-                            <div className="tour-card-type">{TYPE_EMOJI[x.type] ?? ''} {t(`home.categories.${x.type}`, x.type)}</div>
-                            <p className="tour-card-title">{x.destination}</p>
-                            <p className="tour-card-meta">📍 {t('excursions.departure')} {x.from}</p>
-                            <p className="tour-card-meta" style={{ marginTop: 4, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <View
+                        key={x.id}
+                        shadow="raised"
+                        borderRadius="medium"
+                        backgroundColor="white"
+                        overflow="hidden"
+                        attributes={{ style: { cursor: 'pointer' }, onClick: () => navigate(`/excursions/${x.id}`) }}
+                    >
+                        <View
+                            align="center"
+                            justify="center"
+                            attributes={{ style: { height: 200, background: 'linear-gradient(135deg,#667eea,#764ba2)', fontSize: 48 } }}
+                        >
+                            {TYPE_EMOJI[x.type] ?? '🗺️'}
+                        </View>
+                        <View padding={4} gap={2}>
+                            <Badge color="primary">{TYPE_EMOJI[x.type] ?? ''} {t(`home.categories.${x.type}`, x.type)}</Badge>
+                            <Text variant="title-3" weight="bold">{x.destination}</Text>
+                            <Text variant="caption-1" color="neutral-faded">📍 {t('excursions.departure')} {x.from}</Text>
+                            <Text variant="body-2" color="neutral-faded" attributes={{ style: { WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' } }}>
                                 {x.description}
-                            </p>
-                        </div>
-                        <div className="tour-card-footer">
-                            <div className="tour-card-price">{x.priceBgn} {t('common.bgn')} <span>{t('excursions.from')}</span></div>
-                            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>📅 {fmtDate(x.date, locale)}</span>
-                        </div>
-                    </div>
+                            </Text>
+                        </View>
+                        <View
+                            direction="row"
+                            align="center"
+                            justify="space-between"
+                            padding={4}
+                            attributes={{ style: { borderTop: '1px solid var(--border)' } }}
+                        >
+                            <Text variant="title-3" weight="bold">{x.priceBgn} {t('common.bgn')}</Text>
+                            <Text variant="caption-1" color="neutral-faded">📅 {fmtDate(x.date, locale)}</Text>
+                        </View>
+                    </View>
                 ))}
-            </div>
-        </div>
+            </Grid>
+        </View>
     )
 }

@@ -1,5 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Reshaped } from 'reshaped'
+import 'reshaped/themes/reshaped/theme.css'
+import 'reshaped/themes/reshaped/media.css'
 import i18n from './i18n'
 import './index.css'
 import App from './App.tsx'
@@ -7,7 +10,9 @@ import App from './App.tsx'
 function mount() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <App />
+      <Reshaped theme="reshaped">
+        <App />
+      </Reshaped>
     </StrictMode>,
   )
 }

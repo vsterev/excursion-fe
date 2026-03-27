@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { View, Text, Avatar, Button, TextField, Select, Loader, Hidden } from 'reshaped'
 import { fetchRepresentatives, resolvePhotoUrl } from '../api'
 import type { RepresentativeDto } from '../api'
 
@@ -36,64 +37,107 @@ export function RepresentativesPage() {
     }, [data, resortFilter, q])
 
     return (
-        <div className="page">
-            <div className="page-header">
-                <h1>{t('representatives.title')}</h1>
-                <p>{t('representatives.subtitle')}</p>
-            </div>
+        <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
+            <View gap={1} paddingBottom={8}>
+                <Text as="h1" variant="title-1" weight="bold">{t('representatives.title')}</Text>
+                <Text variant="body-2" color="neutral-faded">{t('representatives.subtitle')}</Text>
+            </View>
 
-            <div className="filters-bar">
-                <div className="filters-row">
-                    <div className="filter-group" style={{ flex: 2, minWidth: 200 }}>
-                        <label className="filter-label">🔍</label>
-                        <input className="filter-input" value={q} onChange={e => setQ(e.target.value)} placeholder={t('representatives.title') + '…'} />
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">{t('representatives.resort')}</label>
-                        <select className="filter-select" value={resortFilter} onChange={e => setResortFilter(e.target.value)}>
-                            <option value="all">{t('representatives.title')}</option>
-                            {resorts.map((r: string) => <option key={r} value={r}>{r}</option>)}
-                        </select>
-                    </div>
+            {/* Filters */}
+            <View shadow="raised" padding={5} borderRadius="medium" backgroundColor="white" paddingBottom={6}>
+                <View direction={{ s: 'column', m: 'row' }} gap={3} align="end">
+                    <View grow>
+                        <TextField
+                            name="search"
+                            placeholder={t('representatives.title') + '…'}
+                            value={q}
+                            onChange={({ value }) => setQ(value)}
+                            prefix="🔍"
+                        />
+                    </View>
+                    <View width={{ s: '100%', m: '180px' }}>
+                        <Select
+                            name="resort"
+                            value={resortFilter}
+                            onChange={({ value }) => setResortFilter(value)}
+                        >
+                            <Select.Option value="all">{t('representatives.title')}</Select.Option>
+                            {resorts.map((r: string) => <Select.Option key={r} value={r}>{r}</Select.Option>)}
+                        </Select>
+                    </View>
                     {(q || resortFilter !== 'all') && (
-                        <div className="filter-group" style={{ justifyContent: 'flex-end' }}>
-                            <label className="filter-label">&nbsp;</label>
-                            <button className="filter-clear" onClick={() => { setQ(''); setResortFilter('all') }}>✕</button>
-                        </div>
+                        <Button variant="ghost" color="primary" onClick={() => { setQ(''); setResortFilter('all') }}>✕</Button>
                     )}
-                </div>
-            </div>
+                </View>
+            </View>
 
+            {/* States */}
             {state.status === 'loading' && (
-                <div className="empty-state"><div className="empty-icon">⏳</div><div className="empty-text">{t('representatives.loading')}</div></div>
+                <View align="center" padding={16}><Loader size="large" /></View>
             )}
             {state.status === 'error' && (
-                <div className="empty-state" style={{ color: '#e53e3e' }}><div className="empty-icon">⚠️</div><div className="empty-text">{state.message}</div></div>
+                <View align="center" padding={16} gap={3}>
+                    <Text variant="title-2">⚠️</Text>
+                    <Text color="critical">{state.message}</Text>
+                </View>
             )}
             {state.status === 'success' && filtered.length === 0 && (
-                <div className="empty-state"><div className="empty-icon">👤</div><div className="empty-text">{t('representatives.noResults')}</div></div>
+                <View align="center" padding={16} gap={3}>
+                    <Text variant="title-2">👤</Text>
+                    <Text color="neutral-faded">{t('representatives.noResults')}</Text>
+                </View>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <View gap={4} paddingTop={6}>
                 {filtered.map((r: RepresentativeDto) => (
-                    <div key={r.id} className="rep-card" style={{ cursor: 'pointer' }} onClick={() => navigate(`/representatives/${r.id}`)}>
-                        {r.photoUrl
-                            ? <img className="rep-avatar" src={resolvePhotoUrl(r.photoUrl)!} alt={r.name} />
-                            : <div className="rep-avatar-placeholder">{r.name.charAt(0)}</div>
-                        }
-                        <div className="rep-info">
-                            <p className="rep-name">{r.name}</p>
-                            <p className="rep-resort">{r.resort}</p>
-                            {r.phone && <p className="rep-contact">📞 {r.phone}</p>}
-                            {r.email && <p className="rep-contact">✉️ {r.email}</p>}
-                        </div>
-                        <button className="btn btn-outline" style={{ marginLeft: 'auto', flexShrink: 0 }}
-                            onClick={e => { e.stopPropagation(); navigate(`/representatives/${r.id}`) }}>
-                            {t('representatives.viewProfile')}
-                        </button>
-                    </div>
+                    <View
+                        key={r.id}
+                        shadow="raised"
+                        padding={{ s: 4, m: 5 }}
+                        borderRadius="medium"
+                        backgroundColor="white"
+                        attributes={{ style: { cursor: 'pointer' }, onClick: () => navigate(`/representatives/${r.id}`) }}
+                    >
+                        <View direction={{ s: 'column', m: 'row' }} gap={{ s: 3, m: 4 }} align={{ s: 'start', m: 'center' }}>
+                            <Avatar
+                                src={resolvePhotoUrl(r.photoUrl) ?? undefined}
+                                initials={r.name.charAt(0)}
+                                size={{ s: 10, m: 14 }}
+                            />
+                            <View grow gap={1}>
+                                <Text variant="title-3" weight="bold">{r.name}</Text>
+                                <Text variant="caption-1" color="primary" weight="bold" attributes={{ style: { textTransform: 'uppercase', letterSpacing: '.6px' } }}>{r.resort}</Text>
+                                {r.phone && <Text variant="body-2" color="neutral-faded">📞 {r.phone}</Text>}
+                                {r.email && <Text variant="body-2" color="neutral-faded">✉️ {r.email}</Text>}
+                            </View>
+                            {/* Desktop: outline button on the right */}
+                            <Hidden hide={{ s: true, m: false }}>
+                                <Button
+                                    variant="outline"
+                                    color="primary"
+                                    size="small"
+                                    onClick={(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => { e.stopPropagation(); navigate(`/representatives/${r.id}`) }}
+                                >
+                                    {t('representatives.viewProfile')}
+                                </Button>
+                            </Hidden>
+                            {/* Mobile: full-width solid button at bottom */}
+                            <Hidden hide={{ s: false, m: true }}>
+                                <View width="100%">
+                                    <Button
+                                        variant="solid"
+                                        color="primary"
+                                        fullWidth
+                                        onClick={(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => { e.stopPropagation(); navigate(`/representatives/${r.id}`) }}
+                                    >
+                                        {t('representatives.viewProfile')}
+                                    </Button>
+                                </View>
+                            </Hidden>
+                        </View>
+                    </View>
                 ))}
-            </div>
-        </div>
+            </View>
+        </View>
     )
 }

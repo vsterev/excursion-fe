@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext'
+import { View, Text, Button, Divider } from 'reshaped'
 
 const NAV = [
     { to: '/admin/excursions', icon: '🗺️', label: 'Екскурзии' },
@@ -17,21 +18,18 @@ export function AdminLayout() {
     }
 
     return (
-        <div style={{ display: 'flex', minHeight: '100svh' }}>
+        <View direction="row" minHeight="100svh">
             {/* Sidebar */}
-            <aside style={{
-                width: 240, background: '#1a1a2e', color: '#fff',
-                display: 'flex', flexDirection: 'column',
-                position: 'sticky', top: 0, height: '100svh', flexShrink: 0,
-            }}>
-                <div style={{ padding: '24px 20px 16px', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-                    <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>✈ TripsGuide</div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', marginTop: 2, textTransform: 'uppercase', letterSpacing: 1 }}>
-                        Администрация
-                    </div>
-                </div>
+            <View
+                as="aside"
+                attributes={{ style: { width: 240, background: '#1a1a2e', color: '#fff', flexShrink: 0, position: 'sticky', top: 0, height: '100svh', display: 'flex', flexDirection: 'column' } }}
+            >
+                <View padding={5} attributes={{ style: { borderBottom: '1px solid rgba(255,255,255,.08)' } }}>
+                    <Text variant="title-3" weight="bold" attributes={{ style: { color: '#fff' } }}>✈ TripsGuide</Text>
+                    <Text variant="caption-1" attributes={{ style: { color: 'rgba(255,255,255,.45)', textTransform: 'uppercase', letterSpacing: 1 } }}>Администрация</Text>
+                </View>
 
-                <nav style={{ flex: 1, padding: '12px 10px' }}>
+                <View as="nav" padding={3} grow>
                     {NAV.map(({ to, icon, label }) => (
                         <NavLink
                             key={to}
@@ -43,34 +41,31 @@ export function AdminLayout() {
                                 color: isActive ? '#fff' : 'rgba(255,255,255,.6)',
                                 background: isActive ? 'rgba(255,85,51,.25)' : 'transparent',
                                 borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
-                                transition: 'all .15s',
                             })}
                         >
                             <span style={{ fontSize: 18 }}>{icon}</span>
                             {label}
                         </NavLink>
                     ))}
-                </nav>
+                </View>
 
-                <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
-                    <button
+                <Divider attributes={{ style: { borderColor: 'rgba(255,255,255,.08)' } }} />
+                <View padding={3}>
+                    <Button
+                        variant="ghost"
                         onClick={handleLogout}
-                        style={{
-                            width: '100%', padding: '10px 14px', borderRadius: 8,
-                            background: 'rgba(255,255,255,.06)', border: 'none',
-                            color: 'rgba(255,255,255,.6)', cursor: 'pointer',
-                            fontSize: 14, textAlign: 'left', display: 'flex', gap: 10,
-                        }}
+                        fullWidth
+                        attributes={{ style: { color: 'rgba(255,255,255,.6)', justifyContent: 'flex-start' } }}
                     >
                         🚪 Изход
-                    </button>
-                </div>
-            </aside>
+                    </Button>
+                </View>
+            </View>
 
             {/* Main */}
-            <main style={{ flex: 1, background: 'var(--bg)', overflow: 'auto' }}>
+            <View grow backgroundColor="neutral-faded" overflow="auto">
                 <Outlet />
-            </main>
-        </div>
+            </View>
+        </View>
     )
 }

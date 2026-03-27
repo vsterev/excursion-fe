@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { View, Text, Button, Badge, Loader } from 'reshaped'
 import { fetchExcursion, resolvePhotoUrl } from '../api'
 import type { ExcursionDetailDto } from '../api'
 
@@ -31,61 +32,60 @@ export function ExcursionDetailPage() {
         : i18n.language?.startsWith('en') ? 'en-GB' : 'bg-BG'
 
     if (state.status === 'loading') {
-        return (
-            <div className="page">
-                <div className="empty-state"><div className="empty-icon">⏳</div><div className="empty-text">{t('detail.loading')}</div></div>
-            </div>
-        )
+        return <View align="center" padding={16}><Loader size="large" /></View>
     }
 
     if (state.status === 'error') {
         return (
-            <div className="page">
-                <div className="empty-state" style={{ color: '#e53e3e' }}><div className="empty-icon">⚠️</div><div className="empty-text">{state.message}</div></div>
-            </div>
+            <View align="center" padding={16} gap={3}>
+                <Text variant="title-2">⚠️</Text>
+                <Text color="critical">{state.message}</Text>
+            </View>
         )
     }
 
     const x = state.data
 
     return (
-        <div className="container" style={{ paddingTop: 32, paddingBottom: 64 }}>
-            <button className="btn btn-ghost" style={{ marginBottom: 24 }} onClick={() => navigate(-1)}>
-                {t('detail.back')}
-            </button>
+        <View maxWidth="1200px" width="100%" paddingInline={{ s: 4, m: 6 }} paddingBlock={{ s: 5, m: 8 }} attributes={{ style: { margin: '0 auto' } }}>
+            <Button variant="ghost" onClick={() => navigate(-1)} attributes={{ style: { marginBottom: 24 } }}>
+                ← {t('detail.back')}
+            </Button>
 
-            <div style={{ marginBottom: 24 }}>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 8 }}>
-                    <span className="chip chip-active">{t(`home.categories.${x.type}`, { defaultValue: x.type })}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>{t('detail.departureFrom')} {x.from}</span>
-                </div>
-                <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 8px' }}>{x.destination}</h1>
-                <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--primary)' }}>
+            {/* Header */}
+            <View gap={3} attributes={{ style: { marginBottom: 24 } }}>
+                <View direction="row" gap={3} align="center" wrap>
+                    <Badge color="primary">{t(`home.categories.${x.type}`, { defaultValue: x.type })}</Badge>
+                    <Text variant="body-2" color="neutral-faded">{t('detail.departureFrom')} {x.from}</Text>
+                </View>
+                <Text as="h1" variant="title-1" weight="bold">{x.destination}</Text>
+                <View direction="row" gap={8} wrap align="center">
+                    <Text variant="title-2" weight="bold" color="primary">
                         {x.priceBgn} {t('detail.currency')}
-                    </span>
-                    <span style={{ color: 'var(--text-muted)' }}>
-                        {t('excursions.date')}: {new Date(x.date).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </span>
-                </div>
-            </div>
+                    </Text>
+                    <Text variant="body-2" color="neutral-faded">
+                        📅 {new Date(x.date).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </Text>
+                </View>
+            </View>
 
+            {/* Photos */}
             {x.photos.length > 0 && (
-                <div style={{ marginBottom: 32 }}>
-                    <div style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
+                <View gap={3} attributes={{ style: { marginBottom: 32 } }}>
+                    <View attributes={{ style: { borderRadius: 12, overflow: 'hidden' } }}>
                         <img
                             src={resolvePhotoUrl(x.photos[activePhoto].url)!}
                             alt={x.photos[activePhoto].caption ?? x.destination}
                             style={{ width: '100%', height: 420, objectFit: 'cover', display: 'block' }}
                         />
-                    </div>
+                    </View>
                     {x.photos[activePhoto].caption && (
-                        <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: 12 }}>
+                        <Text variant="body-2" color="neutral-faded" align="center">
                             {x.photos[activePhoto].caption}
-                        </p>
+                        </Text>
                     )}
                     {x.photos.length > 1 && (
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <View direction="row" gap={2} wrap>
                             {x.photos.map((p: Photo, i: number) => (
                                 <img
                                     key={p.id}
@@ -100,15 +100,16 @@ export function ExcursionDetailPage() {
                                     }}
                                 />
                             ))}
-                        </div>
+                        </View>
                     )}
-                </div>
+                </View>
             )}
 
-            <div className="tour-card" style={{ padding: 24 }}>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 12 }}>{t('detail.description')}</h2>
-                <p style={{ lineHeight: 1.7, color: 'var(--text-secondary)' }}>{x.description}</p>
-            </div>
-        </div>
+            {/* Description */}
+            <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white">
+                <Text variant="title-3" weight="bold" attributes={{ style: { marginBottom: 12 } }}>{t('detail.description')}</Text>
+                <Text variant="body-1" color="neutral-faded" attributes={{ style: { lineHeight: 1.7 } }}>{x.description}</Text>
+            </View>
+        </View>
     )
 }

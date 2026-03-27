@@ -5,6 +5,7 @@ import {
     adminUpdateExcursion, adminDeleteExcursion,
 } from '../../adminApi'
 import { ImageUploader } from '../../components/ImageUploader'
+import { View, Text, Button, Alert, Loader, Badge, Select, TextField, TextArea, Table, Divider, Grid } from 'reshaped'
 
 const TYPES = ['Културна', 'Природна', 'Планинска', 'Развлекателна']
 const EMPTY = { type: 'Културна', from: '', destination: '', description: '', priceBgn: '', date: '', photos: '' }
@@ -85,100 +86,112 @@ export function AdminExcursionsPage() {
     }
 
     return (
-        <div style={{ padding: 32 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>🗺️ Екскурзии</h1>
-                <button className="btn btn-primary" onClick={startNew}>+ Добави екскурзия</button>
-            </div>
+        <View padding={{ s: 4, m: 8 }} gap={6}>
+            <View direction="row" justify="space-between" align="center">
+                <Text as="h1" variant="title-1" weight="bold">🗺️ Екскурзии</Text>
+                <Button variant="solid" color="primary" onClick={startNew}>+ Добави екскурзия</Button>
+            </View>
 
-            {error && <div className="admin-error">⚠️ {error}</div>}
+            {error && <Alert color="critical" title="Грешка">{error}</Alert>}
 
             {showForm && (
-                <div className="admin-form-card">
-                    <h2 className="admin-form-title">{editId ? 'Редактиране' : 'Нова екскурзия'}</h2>
+                <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white" gap={5}>
+                    <Text variant="title-3" weight="bold">{editId ? 'Редактиране на екскурзия' : 'Нова екскурзия'}</Text>
+                    <Divider />
                     <form onSubmit={handleSave}>
-                        <div className="admin-grid-2">
-                            <div className="filter-group">
-                                <label className="filter-label">Тип *</label>
-                                <select className="filter-select" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} required>
-                                    {TYPES.map(t => <option key={t}>{t}</option>)}
-                                </select>
-                            </div>
-                            <div className="filter-group">
-                                <label className="filter-label">Тръгване от *</label>
-                                <input className="filter-input" value={form.from} onChange={e => setForm(f => ({ ...f, from: e.target.value }))} placeholder="Слънчев бряг" required />
-                            </div>
-                            <div className="filter-group">
-                                <label className="filter-label">Дестинация *</label>
-                                <input className="filter-input" value={form.destination} onChange={e => setForm(f => ({ ...f, destination: e.target.value }))} placeholder="Несебър" required />
-                            </div>
-                            <div className="filter-group">
-                                <label className="filter-label">Цена (лв.) *</label>
-                                <input className="filter-input" type="number" min="0" step="0.01" value={form.priceBgn} onChange={e => setForm(f => ({ ...f, priceBgn: e.target.value }))} required />
-                            </div>
-                            <div className="filter-group">
-                                <label className="filter-label">Дата *</label>
-                                <input className="filter-input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
-                            </div>
-                        </div>
-                        <div className="filter-group" style={{ marginTop: 12 }}>
-                            <label className="filter-label">Описание *</label>
-                            <textarea className="filter-input" rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={{ resize: 'vertical' }} required />
-                        </div>
-                        <div className="filter-group" style={{ marginTop: 12 }}>
-                            <label className="filter-label">Снимки (по един URL на ред)</label>
-                            <textarea className="filter-input" rows={3} value={form.photos} onChange={e => setForm(f => ({ ...f, photos: e.target.value }))} placeholder="https://..." style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }} />
-                            <div style={{ marginTop: 6 }}>
-                                <ImageUploader
-                                    token={token!}
-                                    category="excursions"
-                                    label="Качи снимка от диск"
-                                    onUploaded={(url: string) => setForm(f => ({
-                                        ...f,
-                                        photos: f.photos ? f.photos + '\n' + url : url,
-                                    }))}
-                                />
-                            </div>
-                        </div>
-                        {error && <div className="admin-error" style={{ marginTop: 8 }}>⚠️ {error}</div>}
-                        <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-                            <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Запазване…' : 'Запази'}</button>
-                            <button type="button" className="btn btn-outline" onClick={() => setShowForm(false)}>Отказ</button>
-                        </div>
+                        <View gap={4}>
+                            <Grid columns={{ s: 1, m: 2 }} gap={4}>
+                                <View gap={1}>
+                                    <Text variant="caption-1" weight="bold">Тип *</Text>
+                                    <Select name="type" value={form.type} onChange={({ value }) => setForm(f => ({ ...f, type: value }))}>
+                                        {TYPES.map(t => <Select.Option key={t} value={t}>{t}</Select.Option>)}
+                                    </Select>
+                                </View>
+                                <View gap={1}>
+                                    <Text variant="caption-1" weight="bold">Тръгване от *</Text>
+                                    <TextField name="from" placeholder="Слънчев бряг" value={form.from} onChange={({ value }) => setForm(f => ({ ...f, from: value }))} />
+                                </View>
+                                <View gap={1}>
+                                    <Text variant="caption-1" weight="bold">Дестинация *</Text>
+                                    <TextField name="destination" placeholder="Несебър" value={form.destination} onChange={({ value }) => setForm(f => ({ ...f, destination: value }))} />
+                                </View>
+                                <View gap={1}>
+                                    <Text variant="caption-1" weight="bold">Цена (лв.) *</Text>
+                                    <TextField name="priceBgn" placeholder="0.00" value={form.priceBgn} onChange={({ value }) => setForm(f => ({ ...f, priceBgn: value }))} inputAttributes={{ type: 'number', min: '0', step: '0.01' }} />
+                                </View>
+                                <View gap={1}>
+                                    <Text variant="caption-1" weight="bold">Дата *</Text>
+                                    <TextField name="date" value={form.date} onChange={({ value }) => setForm(f => ({ ...f, date: value }))} inputAttributes={{ type: 'date' }} />
+                                </View>
+                            </Grid>
+                            <View gap={1}>
+                                <Text variant="caption-1" weight="bold">Описание *</Text>
+                                <TextArea name="description" placeholder="Описание на екскурзията…" value={form.description} onChange={({ value }) => setForm(f => ({ ...f, description: value }))} />
+                            </View>
+                            <View gap={1}>
+                                <Text variant="caption-1" weight="bold">Снимки (по един URL на ред)</Text>
+                                <TextArea name="photos" placeholder="https://..." value={form.photos} onChange={({ value }) => setForm(f => ({ ...f, photos: value }))} />
+                                <View paddingTop={2}>
+                                    <ImageUploader
+                                        token={token!}
+                                        category="excursions"
+                                        label="Качи снимка от диск"
+                                        onUploaded={(url: string) => setForm(f => ({
+                                            ...f,
+                                            photos: f.photos ? f.photos + '\n' + url : url,
+                                        }))}
+                                    />
+                                </View>
+                            </View>
+                            <View direction="row" gap={3}>
+                                <Button type="submit" variant="solid" color="primary" disabled={saving}>
+                                    {saving ? 'Запазване…' : 'Запази'}
+                                </Button>
+                                <Button variant="outline" color="neutral" onClick={() => setShowForm(false)}>Отказ</Button>
+                            </View>
+                        </View>
                     </form>
-                </div>
+                </View>
             )}
 
             {loading ? (
-                <div className="empty-state"><div className="empty-icon">⏳</div></div>
+                <View align="center" padding={16}><Loader size="large" /></View>
+            ) : rows.length === 0 ? (
+                <View align="center" padding={16} gap={3}>
+                    <Text variant="title-1">🗺️</Text>
+                    <Text color="neutral-faded">Няма екскурзии</Text>
+                </View>
             ) : (
-                <div className="admin-table-wrap">
-                    <table className="admin-table">
-                        <thead>
-                            <tr><th>Дестинация</th><th>Тип</th><th>От</th><th>Цена</th><th>Дата</th><th>Снимки</th><th></th></tr>
-                        </thead>
-                        <tbody>
-                            {rows.map(r => (
-                                <tr key={r.id}>
-                                    <td><strong>{r.destination}</strong></td>
-                                    <td><span className="tour-card-type" style={{ fontSize: 11 }}>{r.type}</span></td>
-                                    <td>{r.from}</td>
-                                    <td>{r.priceBgn} лв.</td>
-                                    <td>{r.date?.slice(0, 10)}</td>
-                                    <td style={{ color: 'var(--text-muted)' }}>{r.photos?.length ?? 0}</td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: 6 }}>
-                                            <button className="btn btn-outline" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => startEdit(r)}>✏️ Редакция</button>
-                                            <button className="btn" style={{ padding: '5px 12px', fontSize: 12, background: '#fff5f5', color: '#c53030', border: '1px solid #fed7d7' }} onClick={() => handleDelete(r.id)}>🗑️</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {rows.length === 0 && <div className="empty-state"><div className="empty-icon">🗺️</div><div className="empty-text">Няма екскурзии</div></div>}
-                </div>
+                <View shadow="raised" borderRadius="medium" backgroundColor="white" overflow="hidden">
+                    <Table>
+                        <Table.Row>
+                            <Table.Heading>Дестинация</Table.Heading>
+                            <Table.Heading>Тип</Table.Heading>
+                            <Table.Heading>От</Table.Heading>
+                            <Table.Heading>Цена</Table.Heading>
+                            <Table.Heading>Дата</Table.Heading>
+                            <Table.Heading>Снимки</Table.Heading>
+                            <Table.Heading></Table.Heading>
+                        </Table.Row>
+                        {rows.map(r => (
+                            <Table.Row key={r.id}>
+                                <Table.Cell><Text weight="bold">{r.destination}</Text></Table.Cell>
+                                <Table.Cell><Badge color="primary">{r.type}</Badge></Table.Cell>
+                                <Table.Cell>{r.from}</Table.Cell>
+                                <Table.Cell>{r.priceBgn} лв.</Table.Cell>
+                                <Table.Cell>{r.date?.slice(0, 10)}</Table.Cell>
+                                <Table.Cell><Text color="neutral-faded">{r.photos?.length ?? 0}</Text></Table.Cell>
+                                <Table.Cell>
+                                    <View direction="row" gap={2}>
+                                        <Button variant="outline" color="neutral" size="small" onClick={() => startEdit(r)}>✏️ Редакция</Button>
+                                        <Button variant="outline" color="critical" size="small" onClick={() => handleDelete(r.id)}>🗑️</Button>
+                                    </View>
+                                </Table.Cell>
+                            </Table.Row>
+                        ))}
+                    </Table>
+                </View>
             )}
-        </div>
+        </View>
     )
 }
