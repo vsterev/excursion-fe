@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Card, Container, Select, Text, View } from 'reshaped'
+import { useTranslation } from 'react-i18next'
 import { fetchUsefulInfo } from '../api'
 import type { UsefulInfoDto } from '../api'
 
 type LoadState =
-    | { status: 'idle' | 'loading' }
+    | { status: 'loading' }
     | { status: 'error'; message: string }
     | { status: 'success'; data: UsefulInfoDto[] }
 
 export function UsefulInfoPage() {
+    const { t, i18n } = useTranslation()
     const [state, setState] = useState<LoadState>({ status: 'loading' })
     const [resortFilter, setResortFilter] = useState('all')
     const [categoryFilter, setCategoryFilter] = useState('all')
@@ -19,76 +20,83 @@ export function UsefulInfoPage() {
             .then((data) => { if (!cancelled) setState({ status: 'success', data }) })
             .catch((e: Error) => { if (!cancelled) setState({ status: 'error', message: e.message }) })
         return () => { cancelled = true }
-    }, [])
+    }, [i18n.language])
 
     const data = useMemo(() => (state.status === 'success' ? state.data : []), [state])
     const resorts = useMemo(() => Array.from(new Set(data.map((x: UsefulInfoDto) => x.resort))).sort(), [data])
     const categories = useMemo(() => Array.from(new Set(data.map((x: UsefulInfoDto) => x.category))).sort(), [data])
 
-    const filtered = useMemo(() => {
-        return data.filter((x: UsefulInfoDto) => {
-            if (resortFilter !== 'all' && x.resort !== resortFilter) return false
-            if (categoryFilter !== 'all' && x.category !== categoryFilter) return false
-            return true
-        })
-    }, [data, resortFilter, categoryFilter])
+    const filtered = useMemo(() => data.filter((x: UsefulInfoDto) => {
+        if (resortFilter !== 'all' && x.resort !== resortFilter) return false
+        if (categoryFilter !== 'all' && x.category !== categoryFilter) return false
+        return true
+    }), [data, resortFilter, categoryFilter])
 
     return (
-        <Container width="900px">
-            <View paddingTop={12} paddingBottom={12} gap={6}>
-                <Text variant="featured-2" weight="bold">Полезна информация</Text>
+        <div className="page">
+            <div className="page-header">
+                <h1>{t('usefulInfo.title')}</h1>
+                <p>{t('usefulInfo.subtitle')}</p>
+            </div>
 
-                <View direction="row" gap={4} wrap>
-                    <View grow gap={2}>
-                        <Text variant="caption-1" weight="medium">Курорт</Text>
-                        <Select
-                            name="resort"
-                            value={resortFilter}
-                            onChange={({ value }: { value: string }) => setResortFilter(value)}
-                            options={[
-                                { value: 'all', label: 'Всички курорти' },
-                                ...resorts.map((r: string) => ({ value: r, label: r })),
-                            ]}
-                        />
-                    </View>
-                    <View grow gap={2}>
-                        <Text variant="caption-1" weight="medium">Категория</Text>
-                        <Select
-                            name="category"
-                            value={categoryFilter}
-                            onChange={({ value }: { value: string }) => setCategoryFilter(value)}
-                            options={[
-                                { value: 'all', label: 'Всички категории' },
-                                ...categories.map((c: string) => ({ value: c, label: c })),
-                            ]}
-                        />
-                    </View>
-                </View>
+            {/* Filters */}
+            <div className="filters-bar">
+                <div className="filters-row">
+                    <div className="filter-group">
+                        <label className="filter-label">{t('representatives.resort')}</label>
+                        <select className="filter-select" value={resortFilter} onChange={e => setResortFilter(e.target.value)}>
+                            <option value="all">{t('usefulInfo.allResorts')}</option>
+                            {resorts.map((r: string) => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                    </div>
+                    <div className="filter-group">
+                        <label className="filter-label">{t('usefulInfo.category')}</label>
+                        <select className="filter-select" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
+                            <option value="all">{t('usefulInfo.allCategories')}</option>
+                            {categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
+                    {(resortFilter !== 'all' || categoryFilter !== 'all') && (
+                        <div className="filter-group" style={{ justifyContent: 'flex-end' }}>
+                            <label className="filter-label">&nbsp;</label>
+                            <button className="filter-clear" onClick={() => { setResortFilter('all'); setCategoryFilter('all') }}>✕</button>
+                        </div>
+                    )}
+                </div>
+            </div>
 
-                {state.status === 'loading' && <Text color="neutral-faded">Зареждане…</Text>}
-                {state.status === 'error' && <Text color="critical">{state.message}</Text>}
-                {state.status === 'success' && filtered.length === 0 && (
-                    <Text color="neutral-faded">Няма намерена информация.</Text>
-                )}
+            {/* States */}
+            {state.status === 'loading' && (
+                <div className="empty-state"><div className="empty-icon">⏳</div><div className="empty-text">{t('usefulInfo.loading')}</div></div>
+            )}
+            {state.status === 'error' && (
+                <div className="empty-state" style={{ color: '#e53e3e' }}><div className="empty-icon">⚠️</div><div className="empty-text">{state.message}</div></div>
+            )}
+            {state.status === 'success' && filtered.length === 0 && (
+                <div className="empty-state"><div className="empty-icon">ℹ️</div><div className="empty-text">{t('usefulInfo.noResults')}</div></div>
+            )}
 
-                <View gap={4}>
-                    {filtered.map((item: UsefulInfoDto) => (
-                        <Card key={item.id} padding={6}>
-                            <View gap={2}>
-                                <View direction="row" justify="space-between" align="center" wrap gap={2}>
-                                    <Text weight="bold">{item.title}</Text>
-                                    <View direction="row" gap={2}>
-                                        <Text variant="caption-1" color="neutral-faded">{item.resort}</Text>
-                                        <Text variant="caption-1" color="neutral-faded">·</Text>
-                                        <Text variant="caption-1" color="neutral-faded">{item.category}</Text>
-                                    </View>
-                                </View>
-                                <Text>{item.body}</Text>
-                            </View>
-                        </Card>
-                    ))}
-                </View>
-            </View>
-        </Container>
+            {/* Cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {filtered.map((item: UsefulInfoDto) => (
+                    <div key={item.id} className="section-card" style={{ marginBottom: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{item.title}</h3>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <span className="chip" style={{ fontSize: 11, padding: '2px 10px' }}>{item.resort}</span>
+                                <span className="chip" style={{ fontSize: 11, padding: '2px 10px' }}>{item.category}</span>
+                            </div>
+                        </div>
+                        <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{item.body}</p>
+                        {item.url && (
+                            <a href={item.url} target="_blank" rel="noopener noreferrer"
+                                style={{ display: 'inline-block', marginTop: 10, color: 'var(--primary)', fontWeight: 600, fontSize: 14 }}>
+                                {t('usefulInfo.visitLink')}
+                            </a>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
     )
 }

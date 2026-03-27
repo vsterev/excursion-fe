@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { fetchRepresentative } from '../api'
+import { useTranslation } from 'react-i18next'
+import { fetchRepresentative, resolvePhotoUrl } from '../api'
 import type { RepresentativeDto } from '../api'
 
 type LoadState =
-    | { status: 'idle' | 'loading' }
+    | { status: 'loading' }
     | { status: 'error'; message: string }
     | { status: 'success'; data: RepresentativeDto }
 
 export function RepresentativeDetailPage() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
+    const { t } = useTranslation()
     const [state, setState] = useState<LoadState>({ status: 'loading' })
 
     useEffect(() => {
@@ -22,11 +24,12 @@ export function RepresentativeDetailPage() {
         return () => { cancelled = true }
     }, [id])
 
-    if (state.status !== 'success') {
-        if (state.status === 'error') {
-            return <div className="page"><div className="empty-state" style={{ color: '#e53e3e' }}><div className="empty-icon">⚠️</div><div className="empty-text">{state.message}</div></div></div>
-        }
-        return <div className="page"><div className="empty-state"><div className="empty-icon">⏳</div><div className="empty-text">Зареждане…</div></div></div>
+    if (state.status === 'loading') {
+        return <div className="page"><div className="empty-state"><div className="empty-icon">⏳</div><div className="empty-text">{t('common.loading')}</div></div></div>
+    }
+
+    if (state.status === 'error') {
+        return <div className="page"><div className="empty-state" style={{ color: '#e53e3e' }}><div className="empty-icon">⚠️</div><div className="empty-text">{state.message}</div></div></div>
     }
 
     const r = state.data
@@ -34,14 +37,14 @@ export function RepresentativeDetailPage() {
 
     return (
         <div className="page">
-            <button className="back-btn" onClick={() => navigate(-1)}>← Назад към представители</button>
+            <button className="back-btn" onClick={() => navigate(-1)}>{t('repDetail.back')}</button>
 
             <div className="detail-grid">
                 {/* Main */}
                 <div className="detail-main">
                     <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 32 }}>
                         {r.photoUrl
-                            ? <img src={r.photoUrl} alt={r.name} style={{ width: 140, height: 140, borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--primary-light)', flexShrink: 0 }} />
+                            ? <img src={resolvePhotoUrl(r.photoUrl)!} alt={r.name} style={{ width: 140, height: 140, borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--primary-light)', flexShrink: 0 }} />
                             : <div className="rep-avatar-placeholder" style={{ width: 140, height: 140, fontSize: 52 }}>{r.name.charAt(0)}</div>
                         }
                         <div>
@@ -54,7 +57,7 @@ export function RepresentativeDetailPage() {
 
                     {/* Map */}
                     <div className="section-card">
-                        <h3>Местоположение — {r.resort}</h3>
+                        <h3>{t('repDetail.location')} — {r.resort}</h3>
                         <iframe
                             title="map"
                             width="100%"
@@ -63,14 +66,14 @@ export function RepresentativeDetailPage() {
                             src={`https://www.openstreetmap.org/export/embed.html?bbox=${r.lng - 0.02},${r.lat - 0.02},${r.lng + 0.02},${r.lat + 0.02}&layer=mapnik&marker=${r.lat},${r.lng}`}
                         />
                         <a className="maps-link" href={mapsUrl} target="_blank" rel="noopener noreferrer">
-                            🗺️ Отвори в Google Maps
+                            {t('repDetail.openMaps')}
                         </a>
                     </div>
                 </div>
 
                 {/* Sidebar */}
                 <div className="detail-sidebar">
-                    <p style={{ fontWeight: 700, fontSize: 18, margin: '0 0 16px' }}>Контакт</p>
+                    <p style={{ fontWeight: 700, fontSize: 18, margin: '0 0 16px' }}>{t('repDetail.contact')}</p>
                     {r.phone && (
                         <div className="meta-row">
                             <span className="meta-icon">📞</span>
@@ -92,7 +95,7 @@ export function RepresentativeDetailPage() {
                         rel="noopener noreferrer"
                         style={{ width: '100%', marginTop: 20, justifyContent: 'center', fontSize: 14, padding: '12px 20px' }}
                     >
-                        🗺️ Виж на картата
+                        {t('repDetail.viewMap')}
                     </a>
                     {r.phone && (
                         <a
@@ -100,7 +103,7 @@ export function RepresentativeDetailPage() {
                             href={`tel:${r.phone}`}
                             style={{ width: '100%', marginTop: 10, justifyContent: 'center', fontSize: 14, padding: '12px 20px' }}
                         >
-                            📞 Обади се
+                            {t('repDetail.call')}
                         </a>
                     )}
                 </div>

@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchRepresentatives } from '../api'
+import { useTranslation } from 'react-i18next'
+import { fetchRepresentatives, resolvePhotoUrl } from '../api'
 import type { RepresentativeDto } from '../api'
 
 type LoadState =
-    | { status: 'idle' | 'loading' }
+    | { status: 'loading' }
     | { status: 'error'; message: string }
     | { status: 'success'; data: RepresentativeDto[] }
 
 export function RepresentativesPage() {
     const navigate = useNavigate()
+    const { t, i18n } = useTranslation()
     const [state, setState] = useState<LoadState>({ status: 'loading' })
     const [resortFilter, setResortFilter] = useState('all')
     const [q, setQ] = useState('')
@@ -20,7 +22,7 @@ export function RepresentativesPage() {
             .then((data) => { if (!cancelled) setState({ status: 'success', data }) })
             .catch((e: Error) => { if (!cancelled) setState({ status: 'error', message: e.message }) })
         return () => { cancelled = true }
-    }, [])
+    }, [i18n.language])
 
     const data = useMemo(() => (state.status === 'success' ? state.data : []), [state])
     const resorts = useMemo(() => Array.from(new Set(data.map((x: RepresentativeDto) => x.resort))).sort(), [data])
@@ -36,50 +38,47 @@ export function RepresentativesPage() {
     return (
         <div className="page">
             <div className="page-header">
-                <h1>Представители</h1>
-                <p>Локални гидове и контакти по курорти</p>
+                <h1>{t('representatives.title')}</h1>
+                <p>{t('representatives.subtitle')}</p>
             </div>
 
-            {/* Filters bar */}
             <div className="filters-bar">
                 <div className="filters-row">
                     <div className="filter-group" style={{ flex: 2, minWidth: 200 }}>
-                        <label className="filter-label">Търсене</label>
-                        <input className="filter-input" value={q} onChange={e => setQ(e.target.value)} placeholder="Име, телефон, email…" />
+                        <label className="filter-label">🔍</label>
+                        <input className="filter-input" value={q} onChange={e => setQ(e.target.value)} placeholder={t('representatives.title') + '…'} />
                     </div>
                     <div className="filter-group">
-                        <label className="filter-label">Курорт</label>
+                        <label className="filter-label">{t('representatives.resort')}</label>
                         <select className="filter-select" value={resortFilter} onChange={e => setResortFilter(e.target.value)}>
-                            <option value="all">Всички курорти</option>
+                            <option value="all">{t('representatives.title')}</option>
                             {resorts.map((r: string) => <option key={r} value={r}>{r}</option>)}
                         </select>
                     </div>
                     {(q || resortFilter !== 'all') && (
                         <div className="filter-group" style={{ justifyContent: 'flex-end' }}>
                             <label className="filter-label">&nbsp;</label>
-                            <button className="filter-clear" onClick={() => { setQ(''); setResortFilter('all') }}>✕ Изчисти</button>
+                            <button className="filter-clear" onClick={() => { setQ(''); setResortFilter('all') }}>✕</button>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* States */}
             {state.status === 'loading' && (
-                <div className="empty-state"><div className="empty-icon">⏳</div><div className="empty-text">Зареждане…</div></div>
+                <div className="empty-state"><div className="empty-icon">⏳</div><div className="empty-text">{t('representatives.loading')}</div></div>
             )}
             {state.status === 'error' && (
                 <div className="empty-state" style={{ color: '#e53e3e' }}><div className="empty-icon">⚠️</div><div className="empty-text">{state.message}</div></div>
             )}
             {state.status === 'success' && filtered.length === 0 && (
-                <div className="empty-state"><div className="empty-icon">👤</div><div className="empty-text">Няма намерени представители.</div></div>
+                <div className="empty-state"><div className="empty-icon">👤</div><div className="empty-text">{t('representatives.noResults')}</div></div>
             )}
 
-            {/* Cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {filtered.map((r: RepresentativeDto) => (
                     <div key={r.id} className="rep-card" style={{ cursor: 'pointer' }} onClick={() => navigate(`/representatives/${r.id}`)}>
                         {r.photoUrl
-                            ? <img className="rep-avatar" src={r.photoUrl} alt={r.name} />
+                            ? <img className="rep-avatar" src={resolvePhotoUrl(r.photoUrl)!} alt={r.name} />
                             : <div className="rep-avatar-placeholder">{r.name.charAt(0)}</div>
                         }
                         <div className="rep-info">
@@ -90,7 +89,7 @@ export function RepresentativesPage() {
                         </div>
                         <button className="btn btn-outline" style={{ marginLeft: 'auto', flexShrink: 0 }}
                             onClick={e => { e.stopPropagation(); navigate(`/representatives/${r.id}`) }}>
-                            Виж →
+                            {t('representatives.viewProfile')}
                         </button>
                     </div>
                 ))}

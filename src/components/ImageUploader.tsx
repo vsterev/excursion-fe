@@ -1,66 +1,67 @@
 import { useRef, useState } from 'react'
-import { uploadFile } from '../adminApi'
-import type { UploadCategory } from '../adminApi'
+
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4010'
+const TOKEN_KEY = 'admin_token'
 
 interface Props {
-    token: string
-    category: UploadCategory
-    /** Called with the full URL after successful upload */
     onUploaded: (url: string) => void
     label?: string
+    token?: string
+    category?: string
 }
 
-export function ImageUploader({ token, category, onUploaded, label = 'Качи снимка' }: Props) {
+export function ImageUploader({ onUploaded, label = 'Качи снимка', token: tokenProp, category }: Props) {
     const inputRef = useRef<HTMLInputElement>(null)
     const [uploading, setUploading] = useState(false)
-    const [preview, setPreview] = useState<string | null>(null)
-    const [err, setErr] = useState('')
+    const [error, setError] = useState<string | null>(null)
 
-    async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const file = e.target.files?.[0]
-        if (!file) return
-        setErr('')
-        setPreview(URL.createObjectURL(file))
+    async function handleFile(file: File) {
         setUploading(true)
+        setError(null)
         try {
-            const url = await uploadFile(token, category, file)
-            onUploaded(url)
-        } catch (ex: any) {
-            setErr(ex.message)
-            setPreview(null)
+            const token = tokenProp ?? localStorage.getItem(TOKEN_KEY)
+            const fd = new FormData()
+            fd.append('file', file)
+            // category passed as query param — req.body is not yet available when
+            // multer's destination() runs, but req.query is
+            const qs = category ? `?category=${encodeURIComponent(category)}` : ''
+            const res = await fetch(`${API_ORIGIN}/api/upload${qs}`, {
+                method: 'POST',
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                body: fd,
+            })
+            if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
+            const data = await res.json() as { url: string }
+            onUploaded(data.url)
+        } catch (e) {
+            setError(e instanceof Error ? e.message : 'Upload error')
         } finally {
             setUploading(false)
-            // reset so same file can be re-selected
-            if (inputRef.current) inputRef.current.value = ''
         }
     }
 
     return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div className="image-uploader">
+            <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => inputRef.current?.click()}
+                disabled={uploading}
+            >
+                {uploading ? 'Качване...' : label}
+            </button>
             <input
                 ref={inputRef}
                 type="file"
                 accept="image/*"
                 style={{ display: 'none' }}
-                onChange={handleChange}
+                onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleFile(file)
+                    e.target.value = ''
+                }}
             />
-            <button
-                type="button"
-                className="btn btn-outline"
-                style={{ padding: '7px 14px', fontSize: 13 }}
-                disabled={uploading}
-                onClick={() => inputRef.current?.click()}
-            >
-                {uploading ? '⏳ Качване…' : `📁 ${label}`}
-            </button>
-            {preview && (
-                <img
-                    src={preview}
-                    alt="preview"
-                    style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--border)' }}
-                />
-            )}
-            {err && <span style={{ color: '#c53030', fontSize: 12 }}>⚠️ {err}</span>}
+            {error && <span className="form-error">{error}</span>}
         </div>
     )
 }

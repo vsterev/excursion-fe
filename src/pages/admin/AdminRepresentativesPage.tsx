@@ -5,6 +5,7 @@ import {
     adminUpdateRepresentative, adminDeleteRepresentative,
 } from '../../adminApi'
 import { ImageUploader } from '../../components/ImageUploader'
+import { resolvePhotoUrl } from '../../api'
 
 const EMPTY = { resort: '', name: '', phone: '', email: '', photoUrl: '', lat: '', lng: '' }
 
@@ -156,7 +157,7 @@ export function AdminRepresentativesPage() {
                                     <td>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                             {r.photoUrl
-                                                ? <img src={r.photoUrl} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                                                ? <img src={resolvePhotoUrl(r.photoUrl)!} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                                                 : <div className="rep-avatar-placeholder" style={{ width: 36, height: 36, fontSize: 14 }}>{r.name?.charAt(0)}</div>
                                             }
                                             <strong>{r.name}</strong>
