@@ -1,6 +1,6 @@
 const bg = {
   nav: {
-    logo: '🌍 Трипс',
+    logo: '🌍 Trips',
     excursions: 'Екскурзии',
     representatives: 'Представители',
     usefulInfo: 'Полезна информация',

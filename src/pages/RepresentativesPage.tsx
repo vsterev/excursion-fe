@@ -39,12 +39,12 @@ export function RepresentativesPage() {
     return (
         <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
             <View gap={1} paddingBottom={8}>
-                <Text as="h1" variant="title-1" weight="bold">{t('representatives.title')}</Text>
-                <Text variant="body-2" color="neutral-faded">{t('representatives.subtitle')}</Text>
+                <Text as="h1" variant={{ s: 'title-6', m: 'title-4' }} weight="bold">{t('representatives.title')}</Text>
+                <Text variant={{ s: 'body-2', m: 'body-1' }} color="neutral-faded">{t('representatives.subtitle')}</Text>
             </View>
 
             {/* Filters */}
-            <View shadow="raised" padding={5} borderRadius="medium" backgroundColor="white" paddingBottom={6}>
+            <View shadow='raised' padding={5} borderRadius="medium" backgroundColor="white" paddingBottom={6}>
                 <View direction={{ s: 'column', m: 'row' }} gap={3} align="end">
                     <View grow>
                         <TextField
@@ -92,7 +92,7 @@ export function RepresentativesPage() {
                 {filtered.map((r: RepresentativeDto) => (
                     <View
                         key={r.id}
-                        shadow="raised"
+                        shadow="overlay"
                         padding={{ s: 4, m: 5 }}
                         borderRadius="medium"
                         backgroundColor="white"

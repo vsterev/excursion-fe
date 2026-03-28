@@ -8,7 +8,17 @@ import { ImageUploader } from '../../components/ImageUploader'
 import { resolvePhotoUrl } from '../../api'
 import { View, Text, Button, Alert, Loader, Avatar, TextField, Table, Divider, Grid } from 'reshaped'
 
-const EMPTY = { resort: '', name: '', phone: '', email: '', photoUrl: '', lat: '', lng: '' }
+const EMPTY = {
+    resort: '',
+    name: '',
+    phone: '',
+    email: '',
+    photoUrl: '',
+    lat: '',
+    lng: '',
+    hotels: [] as string[],
+    languages: [] as string[]
+}
 
 interface RepRow {
     id: string
@@ -19,17 +29,29 @@ interface RepRow {
     photoUrl?: string
     lat: number
     lng: number
+    languages: string[]
+    hotels: string[]
 }
+
+const LANG_OPTIONS = [
+    { value: 'ru', label: 'Руски' },
+    { value: 'cz', label: 'Чешки' },
+    { value: 'pl', label: 'Полски' },
+    { value: 'en', label: 'Английски' },
+    { value: 'ro', label: 'Румънски' },
+    { value: 'de', label: 'Немски' },
+]
 
 export function AdminRepresentativesPage() {
     const { token } = useAuth()
     const [rows, setRows] = useState<RepRow[]>([])
     const [loading, setLoading] = useState(true)
-    const [form, setForm] = useState(EMPTY)
+    const [form, setForm] = useState<typeof EMPTY>(EMPTY)
     const [editId, setEditId] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [showForm, setShowForm] = useState(false)
+
 
     const load = useCallback(() => {
         if (!token) return
@@ -40,6 +62,8 @@ export function AdminRepresentativesPage() {
             .finally(() => setLoading(false))
     }, [token])
 
+
+
     useEffect(() => { load() }, [load])
 
     function startEdit(row: RepRow) {
@@ -48,6 +72,8 @@ export function AdminRepresentativesPage() {
             phone: row.phone ?? '', email: row.email ?? '',
             photoUrl: row.photoUrl ?? '',
             lat: String(row.lat), lng: String(row.lng),
+            languages: row.languages ?? [],
+            hotels: row.hotels ?? [],
         })
         setEditId(row.id); setShowForm(true); setError('')
     }
@@ -65,6 +91,8 @@ export function AdminRepresentativesPage() {
             phone: form.phone || undefined, email: form.email || undefined,
             photoUrl: form.photoUrl || undefined,
             lat: Number(form.lat), lng: Number(form.lng),
+            hotels: form.hotels || [],
+            languages: form.languages || []
         }
         try {
             if (editId) await adminUpdateRepresentative(token, editId, body)
@@ -132,6 +160,23 @@ export function AdminRepresentativesPage() {
                                 <View gap={1}>
                                     <Text variant="caption-1" weight="bold">Longitude *</Text>
                                     <TextField name="lng" placeholder="27.9120" value={form.lng} onChange={({ value }) => setForm(p => ({ ...p, lng: value }))} inputAttributes={{ type: 'number', step: 'any' }} />
+                                </View>
+                                <View gap={1}>
+                                    <Text variant="caption-1" weight="bold">Езици</Text>
+                                    <select
+                                        multiple
+                                        name='languages'
+                                        value={form.languages}
+                                        onChange={e => {
+                                            const selected = Array.from(e.target.selectedOptions).map(o => o.value)
+                                            setForm(p => ({ ...p, languages: selected }))
+                                        }}
+                                        style={{ minHeight: 80 }}
+                                    >
+                                        {LANG_OPTIONS.map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
                                 </View>
                             </Grid>
                             <View direction="row" gap={3}>
