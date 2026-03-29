@@ -6,9 +6,21 @@ import {
 } from '../../adminApi'
 import { ImageUploader } from '../../components/ImageUploader'
 import { View, Text, Button, Alert, Loader, Badge, Select, TextField, TextArea, Table, Divider, Grid } from 'reshaped'
+import ReactQuill from 'react-quill-new'
+import 'react-quill-new/dist/quill.snow.css'
+
+const QUILL_MODULES = {
+    toolbar: [
+        [{ header: [2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+        ['clean'],
+    ],
+}
 
 const TYPES = ['Културна', 'Природна', 'Планинска', 'Развлекателна']
-const EMPTY = { type: 'Културна', from: '', destination: '', description: '', priceBgn: '', date: '', photos: '' }
+const EMPTY = { type: 'Културна', from: '', destination: '', description: '', photos: '' }
 
 interface ExcursionRow {
     id: string
@@ -16,8 +28,6 @@ interface ExcursionRow {
     from: string
     destination: string
     description: string
-    priceBgn: number
-    date: string
     photos: { url: string; caption?: string; order?: number }[]
 }
 
@@ -48,8 +58,6 @@ export function AdminExcursionsPage() {
             from: row.from,
             destination: row.destination,
             description: row.description,
-            priceBgn: String(row.priceBgn),
-            date: row.date?.slice(0, 10) ?? '',
             photos: (row.photos ?? []).map(p => p.url).join('\n'),
         })
         setEditId(row.id); setShowForm(true); setError('')
@@ -66,8 +74,7 @@ export function AdminExcursionsPage() {
         const photoUrls = form.photos.split('\n').map(s => s.trim()).filter(Boolean)
         const body = {
             type: form.type, from: form.from, destination: form.destination,
-            description: form.description, priceBgn: Number(form.priceBgn),
-            date: form.date,
+            description: form.description,
             photos: photoUrls.map((url, i) => ({ url, order: i })),
         }
         try {
@@ -115,18 +122,17 @@ export function AdminExcursionsPage() {
                                     <Text variant="caption-1" weight="bold">Дестинация *</Text>
                                     <TextField name="destination" placeholder="Несебър" value={form.destination} onChange={({ value }) => setForm(f => ({ ...f, destination: value }))} />
                                 </View>
-                                <View gap={1}>
-                                    <Text variant="caption-1" weight="bold">Цена (лв.) *</Text>
-                                    <TextField name="priceBgn" placeholder="0.00" value={form.priceBgn} onChange={({ value }) => setForm(f => ({ ...f, priceBgn: value }))} inputAttributes={{ type: 'number', min: '0', step: '0.01' }} />
-                                </View>
-                                <View gap={1}>
-                                    <Text variant="caption-1" weight="bold">Дата *</Text>
-                                    <TextField name="date" value={form.date} onChange={({ value }) => setForm(f => ({ ...f, date: value }))} inputAttributes={{ type: 'date' }} />
-                                </View>
                             </Grid>
                             <View gap={1}>
                                 <Text variant="caption-1" weight="bold">Описание *</Text>
-                                <TextArea name="description" placeholder="Описание на екскурзията…" value={form.description} onChange={({ value }) => setForm(f => ({ ...f, description: value }))} />
+                                <ReactQuill
+                                    theme="snow"
+                                    value={form.description}
+                                    onChange={(value) => setForm(f => ({ ...f, description: value }))}
+                                    modules={QUILL_MODULES}
+                                    placeholder="Описание на екскурзията…"
+                                    style={{ minHeight: 200 }}
+                                />
                             </View>
                             <View gap={1}>
                                 <Text variant="caption-1" weight="bold">Снимки (по един URL на ред)</Text>
@@ -168,8 +174,6 @@ export function AdminExcursionsPage() {
                             <Table.Heading>Дестинация</Table.Heading>
                             <Table.Heading>Тип</Table.Heading>
                             <Table.Heading>От</Table.Heading>
-                            <Table.Heading>Цена</Table.Heading>
-                            <Table.Heading>Дата</Table.Heading>
                             <Table.Heading>Снимки</Table.Heading>
                             <Table.Heading></Table.Heading>
                         </Table.Row>
@@ -178,8 +182,6 @@ export function AdminExcursionsPage() {
                                 <Table.Cell><Text weight="bold">{r.destination}</Text></Table.Cell>
                                 <Table.Cell><Badge color="primary">{r.type}</Badge></Table.Cell>
                                 <Table.Cell>{r.from}</Table.Cell>
-                                <Table.Cell>{r.priceBgn} лв.</Table.Cell>
-                                <Table.Cell>{r.date?.slice(0, 10)}</Table.Cell>
                                 <Table.Cell><Text color="neutral-faded">{r.photos?.length ?? 0}</Text></Table.Cell>
                                 <Table.Cell>
                                     <View direction="row" gap={2}>

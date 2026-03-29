@@ -14,7 +14,7 @@ type LoadState =
 export function RepresentativeDetailPage() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const [state, setState] = useState<LoadState>({ status: 'loading' })
 
     useEffect(() => {
@@ -24,7 +24,7 @@ export function RepresentativeDetailPage() {
             .then((data) => { if (!cancelled) setState({ status: 'success', data }) })
             .catch((e: Error) => { if (!cancelled) setState({ status: 'error', message: e.message }) })
         return () => { cancelled = true }
-    }, [id])
+    }, [id, i18n.language])
 
     if (state.status === 'loading') {
         return <View align="center" padding={16}><Loader size="large" /></View>

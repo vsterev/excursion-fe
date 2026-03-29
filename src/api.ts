@@ -13,8 +13,7 @@ export type ExcursionDto = {
     from: string
     destination: string
     description: string
-    priceBgn: number
-    date: string
+    date: string | null
 }
 
 export type ExcursionDetailDto = ExcursionDto & {
@@ -74,18 +73,13 @@ async function apiFetch<T>(path: string): Promise<T> {
 
 export const fetchExcursions = (params?: {
     type?: string; from?: string; destination?: string
-    q?: string; priceMin?: number; priceMax?: number
-    dateFrom?: string; dateTo?: string
+    q?: string
 }): Promise<ExcursionDto[]> => {
     const qs = new URLSearchParams({ lang: lang() })
     if (params?.type) qs.set('type', params.type)
     if (params?.from) qs.set('from', params.from)
     if (params?.destination) qs.set('destination', params.destination)
     if (params?.q) qs.set('q', params.q)
-    if (params?.priceMin != null) qs.set('priceMin', String(params.priceMin))
-    if (params?.priceMax != null) qs.set('priceMax', String(params.priceMax))
-    if (params?.dateFrom) qs.set('dateFrom', params.dateFrom)
-    if (params?.dateTo) qs.set('dateTo', params.dateTo)
     return apiFetch<ExcursionDto[]>(`/excursions?${qs}`)
 }
 

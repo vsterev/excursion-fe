@@ -26,7 +26,7 @@ export function ExcursionDetailPage() {
             .then((data) => { if (!cancelled) setState({ status: 'success', data }) })
             .catch((e: Error) => { if (!cancelled) setState({ status: 'error', message: e.message }) })
         return () => { cancelled = true }
-    }, [id])
+    }, [id, i18n.language])
 
     const locale = i18n.language?.startsWith('de') ? 'de-DE'
         : i18n.language?.startsWith('en') ? 'en-GB' : 'bg-BG'
@@ -59,14 +59,11 @@ export function ExcursionDetailPage() {
                     <Text variant="body-2" color="neutral-faded">{t('detail.departureFrom')} {x.from}</Text>
                 </View>
                 <Text as="h1" variant="title-1" weight="bold">{x.destination}</Text>
-                <View direction="row" gap={8} wrap align="center">
-                    <Text variant="title-2" weight="bold" color="primary">
-                        {x.priceBgn} {t('detail.currency')}
-                    </Text>
+                {x.date && (
                     <Text variant="body-2" color="neutral-faded">
                         📅 {new Date(x.date).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}
                     </Text>
-                </View>
+                )}
             </View>
 
             {/* Photos */}
@@ -108,7 +105,11 @@ export function ExcursionDetailPage() {
             {/* Description */}
             <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white">
                 <Text variant="title-3" weight="bold" attributes={{ style: { marginBottom: 12 } }}>{t('detail.description')}</Text>
-                <Text variant="body-1" color="neutral-faded" attributes={{ style: { lineHeight: 1.7 } }}>{x.description}</Text>
+                <div
+                    className="excursion-description"
+                    dangerouslySetInnerHTML={{ __html: x.description }}
+                    style={{ lineHeight: 1.7, color: 'var(--rs-color-foreground-neutral-faded)' }}
+                />
             </View>
         </View>
     )

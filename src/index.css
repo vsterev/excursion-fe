@@ -161,3 +161,16 @@ body { margin: 0; }
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/* ── Rich text description ──────────────────── */
+.excursion-description h2 { font-size: 1.25em; margin: 1em 0 .4em; }
+.excursion-description h3 { font-size: 1.1em; margin: .8em 0 .3em; }
+.excursion-description p { margin: 0 0 .6em; }
+.excursion-description ul,
+.excursion-description ol { margin: 0 0 .6em; padding-left: 1.5em; }
+.excursion-description a { color: var(--primary); }
+
+/* ── Quill editor in admin ──────────────────── */
+.ql-editor { min-height: 180px; font-family: inherit; font-size: 14px; }
+.ql-toolbar.ql-snow { border-radius: 8px 8px 0 0; border-color: var(--border); }
+.ql-container.ql-snow { border-radius: 0 0 8px 8px; border-color: var(--border); }

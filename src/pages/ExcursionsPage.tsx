@@ -5,15 +5,17 @@ import { View, Text, Grid, TextField, Button, Badge, Loader } from 'reshaped'
 import { fetchExcursions } from '../api'
 import type { ExcursionDto } from '../api'
 
+function stripHtml(html: string): string {
+    const div = document.createElement('div')
+    div.innerHTML = html
+    return div.textContent ?? ''
+}
+
 const TYPE_EMOJI: Record<string, string> = {
     'Културна': '🏛️',
     'Природна': '🌿',
     'Планинска': '⛰️',
     'Развлекателна': '🎢',
-}
-
-function fmtDate(iso: string, locale: string) {
-    return new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 type LoadState =
@@ -28,10 +30,6 @@ export function ExcursionsPage() {
     const [state, setState] = useState<LoadState>({ status: 'loading' })
     const [typeFilter, setTypeFilter] = useState(() => searchParams.get('type') ?? 'all')
     const [q, setQ] = useState('')
-    const [priceMin, setPriceMin] = useState('')
-    const [priceMax, setPriceMax] = useState('')
-    const [dateFrom, setDateFrom] = useState('')
-    const [dateTo, setDateTo] = useState('')
 
     useEffect(() => {
         let cancelled = false
@@ -47,22 +45,16 @@ export function ExcursionsPage() {
     const filtered = useMemo(() => {
         return data.filter((x: ExcursionDto) => {
             if (typeFilter !== 'all' && x.type !== typeFilter) return false
-            if (q && !`${x.destination} ${x.from} ${x.description} ${x.type}`.toLowerCase().includes(q.toLowerCase())) return false
-            if (priceMin && x.priceBgn < Number(priceMin)) return false
-            if (priceMax && x.priceBgn > Number(priceMax)) return false
-            if (dateFrom && x.date < dateFrom) return false
-            if (dateTo && x.date > dateTo) return false
+            if (q && !`${x.destination} ${x.from} ${stripHtml(x.description)} ${x.type}`.toLowerCase().includes(q.toLowerCase())) return false
             return true
         })
-    }, [data, typeFilter, q, priceMin, priceMax, dateFrom, dateTo])
+    }, [data, typeFilter, q])
 
-    const hasFilters = q || typeFilter !== 'all' || priceMin || priceMax || dateFrom || dateTo
+    const hasFilters = q || typeFilter !== 'all'
 
     function clearFilters() {
-        setQ(''); setTypeFilter('all'); setPriceMin(''); setPriceMax(''); setDateFrom(''); setDateTo('')
+        setQ(''); setTypeFilter('all')
     }
-
-    const locale = i18n.language?.startsWith('de') ? 'de-DE' : i18n.language?.startsWith('en') ? 'en-GB' : 'bg-BG'
 
     return (
         <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
@@ -96,7 +88,7 @@ export function ExcursionsPage() {
                 </View>
             )}
 
-            {/* Filters */}
+            {/* Search */}
             <View shadow="raised" padding={5} borderRadius="medium" backgroundColor="white" paddingBottom={6}>
                 <View direction={{ s: 'column', m: 'row' }} gap={4} wrap>
                     <View grow>
@@ -107,52 +99,6 @@ export function ExcursionsPage() {
                             onChange={({ value }) => setQ(value)}
                             prefix="🔍"
                         />
-                    </View>
-                    <View minWidth="120px">
-                        <View gap={1}>
-                            <Text variant="caption-1">{t('excursions.filterSort')} min ({t('common.bgn')})</Text>
-                            <TextField
-                                name="priceMin"
-                                placeholder="0"
-                                value={priceMin}
-                                onChange={({ value }) => setPriceMin(value)}
-                                inputAttributes={{ type: 'number' }}
-                            />
-                        </View>
-                    </View>
-                    <View minWidth="120px">
-                        <View gap={1}>
-                            <Text variant="caption-1">{t('excursions.filterSort')} max ({t('common.bgn')})</Text>
-                            <TextField
-                                name="priceMax"
-                                placeholder="9999"
-                                value={priceMax}
-                                onChange={({ value }) => setPriceMax(value)}
-                                inputAttributes={{ type: 'number' }}
-                            />
-                        </View>
-                    </View>
-                    <View minWidth="140px">
-                        <View gap={1}>
-                            <Text variant="caption-1">{t('excursions.date')} from</Text>
-                            <TextField
-                                name="dateFrom"
-                                value={dateFrom}
-                                onChange={({ value }) => setDateFrom(value)}
-                                inputAttributes={{ type: 'date' }}
-                            />
-                        </View>
-                    </View>
-                    <View minWidth="140px">
-                        <View gap={1}>
-                            <Text variant="caption-1">{t('excursions.date')} to</Text>
-                            <TextField
-                                name="dateTo"
-                                value={dateTo}
-                                onChange={({ value }) => setDateTo(value)}
-                                inputAttributes={{ type: 'date' }}
-                            />
-                        </View>
                     </View>
                     {hasFilters && (
                         <View justify="end">
@@ -202,18 +148,8 @@ export function ExcursionsPage() {
                             <Text variant="title-3" weight="bold">{x.destination}</Text>
                             <Text variant="caption-1" color="neutral-faded">📍 {t('excursions.departure')} {x.from}</Text>
                             <Text variant="body-2" color="neutral-faded" attributes={{ style: { WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' } }}>
-                                {x.description}
+                                {stripHtml(x.description)}
                             </Text>
-                        </View>
-                        <View
-                            direction="row"
-                            align="center"
-                            justify="space-between"
-                            padding={4}
-                            attributes={{ style: { borderTop: '1px solid var(--border)' } }}
-                        >
-                            <Text variant="title-3" weight="bold">{x.priceBgn} {t('common.bgn')}</Text>
-                            <Text variant="caption-1" color="neutral-faded">📅 {fmtDate(x.date, locale)}</Text>
                         </View>
                     </View>
                 ))}
