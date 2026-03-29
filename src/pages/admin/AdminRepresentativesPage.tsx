@@ -1,36 +1,39 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useAuth } from '../../AuthContext'
 import {
     adminListRepresentatives, adminCreateRepresentative,
     adminUpdateRepresentative, adminDeleteRepresentative,
 } from '../../adminApi'
 import { ImageUploader } from '../../components/ImageUploader'
-import { resolvePhotoUrl } from '../../api'
-import { View, Text, Button, Alert, Loader, Avatar, TextField, Table, Divider, Grid } from 'reshaped'
+import { resolvePhotoUrl, fetchResorts, type ResortDto } from '../../api'
+import { View, Text, Button, Alert, Loader, Avatar, TextField, TextArea, Table, Divider, Grid } from 'reshaped'
 
-const EMPTY = {
-    resort: '',
-    name: '',
-    phone: '',
-    email: '',
-    photoUrl: '',
-    lat: '',
-    lng: '',
-    hotels: [] as string[],
-    languages: [] as string[]
+function emptyForm() {
+    return {
+        resortIds: [] as number[],
+        name: '',
+        phone: '',
+        email: '',
+        photoUrl: '',
+        lat: '',
+        lng: '',
+        /** Суров текст в полето — парсира се при „Запази“, за да не „изяжда“ запетайте докато пишете */
+        hotelsText: '',
+        languages: [] as string[],
+    }
 }
 
 interface RepRow {
     id: string
-    resort: string
+    resorts: { id: number; name: string }[]
     name: string
-    phone?: string
-    email?: string
-    photoUrl?: string
+    phone?: string | null
+    email?: string | null
+    photoUrl?: string | null
     lat: number
     lng: number
-    languages: string[]
-    hotels: string[]
+    languages: string[] | null
+    hotels: string[] | null
 }
 
 const LANG_OPTIONS = [
@@ -42,16 +45,30 @@ const LANG_OPTIONS = [
     { value: 'de', label: 'Немски' },
 ]
 
+/** Ако има нов ред — всеки ред е хотел (позволява запетая в името). Иначе — разделяне по запетая. */
+function parseHotelsInput(s: string): string[] {
+    const t = s.trim()
+    if (!t) return []
+    if (/\r?\n/.test(t)) {
+        return t.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+    }
+    return t.split(',').map((x) => x.trim()).filter(Boolean)
+}
+
 export function AdminRepresentativesPage() {
     const { token } = useAuth()
     const [rows, setRows] = useState<RepRow[]>([])
     const [loading, setLoading] = useState(true)
-    const [form, setForm] = useState<typeof EMPTY>(EMPTY)
+    const [form, setForm] = useState(emptyForm)
     const [editId, setEditId] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
     const [showForm, setShowForm] = useState(false)
+    const [resortOptions, setResortOptions] = useState<ResortDto[]>([])
 
+    useEffect(() => {
+        fetchResorts().then(setResortOptions).catch(() => { setResortOptions([]) })
+    }, [])
 
     const load = useCallback(() => {
         if (!token) return
@@ -66,20 +83,44 @@ export function AdminRepresentativesPage() {
 
     useEffect(() => { load() }, [load])
 
+    /** Всички опции за селекта: GET /resorts + курортите от редактирания ред (ако липсват в списъка или id са string от JSON). */
+    const resortChoicesForSelect = useMemo(() => {
+        const map = new Map<number, ResortDto>()
+        for (const o of resortOptions) {
+            map.set(Number(o.id), { id: Number(o.id), name: o.name })
+        }
+        if (showForm && editId) {
+            const row = rows.find((r) => r.id === editId)
+            for (const s of row?.resorts ?? []) {
+                const id = Number(s.id)
+                if (!Number.isFinite(id)) continue
+                if (!map.has(id)) {
+                    map.set(id, { id, name: s.name })
+                }
+            }
+        }
+        return Array.from(map.values()).sort((a, b) =>
+            a.name.localeCompare(b.name, 'bg', { sensitivity: 'base' }),
+        )
+    }, [resortOptions, showForm, editId, rows])
+
     function startEdit(row: RepRow) {
+        const hotels = row.hotels ?? []
         setForm({
-            resort: row.resort, name: row.name,
+            ...emptyForm(),
+            resortIds: row.resorts.map((s) => Number(s.id)).filter((id) => Number.isFinite(id)),
+            name: row.name,
             phone: row.phone ?? '', email: row.email ?? '',
             photoUrl: row.photoUrl ?? '',
             lat: String(row.lat), lng: String(row.lng),
             languages: row.languages ?? [],
-            hotels: row.hotels ?? [],
+            hotelsText: hotels.length ? hotels.join('\n') : '',
         })
         setEditId(row.id); setShowForm(true); setError('')
     }
 
     function startNew() {
-        setForm(EMPTY); setEditId(null); setShowForm(true); setError('')
+        setForm(emptyForm()); setEditId(null); setShowForm(true); setError('')
     }
 
     async function handleSave(e: React.FormEvent) {
@@ -87,11 +128,12 @@ export function AdminRepresentativesPage() {
         if (!token) return
         setSaving(true); setError('')
         const body = {
-            resort: form.resort, name: form.name,
+            resortIds: form.resortIds,
+            name: form.name,
             phone: form.phone || undefined, email: form.email || undefined,
             photoUrl: form.photoUrl || undefined,
             lat: Number(form.lat), lng: Number(form.lng),
-            hotels: form.hotels || [],
+            hotels: parseHotelsInput(form.hotelsText),
             languages: form.languages || []
         }
         try {
@@ -125,9 +167,28 @@ export function AdminRepresentativesPage() {
                     <form onSubmit={handleSave}>
                         <View gap={4}>
                             <Grid columns={{ s: 1, m: 2 }} gap={4}>
-                                <View gap={1}>
-                                    <Text variant="caption-1" weight="bold">Курорт *</Text>
-                                    <TextField name="resort" placeholder="Слънчев бряг" value={form.resort} onChange={({ value }) => setForm(p => ({ ...p, resort: value }))} />
+                                <View gap={1} attributes={{ style: { gridColumn: '1 / -1' } }}>
+                                    <Text variant="caption-1" weight="bold">Курорти</Text>
+                                    <Text variant="caption-1" color="neutral-faded">Множествен избор — задръж Ctrl (Windows/Linux) или ⌘ (Mac) за няколко курорта</Text>
+                                    {resortChoicesForSelect.length === 0 ? (
+                                        <Text variant="body-2" color="neutral-faded">Зареждане на курорти… (ако остава празно, проверете връзката с API)</Text>
+                                    ) : (
+                                        <select
+                                            key={editId ?? 'new'}
+                                            multiple
+                                            name="resortIds"
+                                            value={form.resortIds.map((id) => String(id))}
+                                            onChange={(e) => {
+                                                const selected = Array.from(e.target.selectedOptions).map((o) => Number(o.value))
+                                                setForm((p) => ({ ...p, resortIds: selected }))
+                                            }}
+                                            style={{ minHeight: 120, width: '100%' }}
+                                        >
+                                            {resortChoicesForSelect.map((opt) => (
+                                                <option key={opt.id} value={String(opt.id)}>{opt.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </View>
                                 <View gap={1}>
                                     <Text variant="caption-1" weight="bold">Имe *</Text>
@@ -164,6 +225,7 @@ export function AdminRepresentativesPage() {
                                 <View gap={1}>
                                     <Text variant="caption-1" weight="bold">Езици</Text>
                                     <select
+                                        key={`lang-${editId ?? 'new'}`}
                                         multiple
                                         name='languages'
                                         value={form.languages}
@@ -177,6 +239,19 @@ export function AdminRepresentativesPage() {
                                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                                         ))}
                                     </select>
+                                </View>
+                                <View gap={1} attributes={{ style: { gridColumn: '1 / -1' } }}>
+                                    <Text variant="caption-1" weight="bold">Хотели</Text>
+                                    <Text variant="caption-1" color="neutral-faded">
+                                        На един ред — разделени със запетая; или по един хотел на ред (за име със запетая ползвайте нов ред).
+                                    </Text>
+                                    <TextArea
+                                        name="hotels"
+                                        placeholder="Grand Hotel, Marina Palace — или по един хотел на ред"
+                                        value={form.hotelsText}
+                                        onChange={({ value }) => setForm((p) => ({ ...p, hotelsText: value }))}
+                                        inputAttributes={{ rows: 4 }}
+                                    />
                                 </View>
                             </Grid>
                             <View direction="row" gap={3}>
@@ -202,7 +277,7 @@ export function AdminRepresentativesPage() {
                     <Table>
                         <Table.Row>
                             <Table.Heading>Имe</Table.Heading>
-                            <Table.Heading>Курорт</Table.Heading>
+                            <Table.Heading>Курорти</Table.Heading>
                             <Table.Heading>Телефон</Table.Heading>
                             <Table.Heading>Email</Table.Heading>
                             <Table.Heading>Координати</Table.Heading>
@@ -220,7 +295,9 @@ export function AdminRepresentativesPage() {
                                         <Text weight="bold">{r.name}</Text>
                                     </View>
                                 </Table.Cell>
-                                <Table.Cell>{r.resort}</Table.Cell>
+                                <Table.Cell>
+                                    <Text variant="body-2">{r.resorts?.length ? r.resorts.map((s) => s.name).join(', ') : '—'}</Text>
+                                </Table.Cell>
                                 <Table.Cell><Text color="neutral-faded">{r.phone ?? '—'}</Text></Table.Cell>
                                 <Table.Cell><Text color="neutral-faded">{r.email ?? '—'}</Text></Table.Cell>
                                 <Table.Cell><Text variant="caption-1" color="neutral-faded">{r.lat}, {r.lng}</Text></Table.Cell>

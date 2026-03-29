@@ -1,0 +1,9 @@
+.card {
+    cursor: pointer;
+}
+
+@media (--rs-viewport-l) {
+    .card {
+        cursor: default;
+    }
+}

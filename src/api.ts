@@ -21,15 +21,23 @@ export type ExcursionDetailDto = ExcursionDto & {
     photos: ExcursionPhotoDto[]
 }
 
+export type ResortDto = {
+    id: number
+    name: string
+}
+
+/** Публичен списък/детайл — синхрон с RepresentativesController на бекенда */
 export type RepresentativeDto = {
     id: string
-    resort: string
     name: string
     phone: string | null
     email: string | null
     photoUrl: string | null
     lat: number
     lng: number
+    languages: string[] | null
+    hotels: string[] | null
+    resorts: ResortDto[]
 }
 
 export type UsefulInfoDto = {
@@ -84,12 +92,19 @@ export const fetchExcursions = (params?: {
 export const fetchExcursion = (id: string): Promise<ExcursionDetailDto> =>
     apiFetch<ExcursionDetailDto>(`/excursions/${id}?lang=${lang()}`)
 
-export const fetchRepresentatives = (params?: { resort?: string; q?: string }): Promise<RepresentativeDto[]> => {
+export const fetchRepresentatives = (params?: {
+    resortId?: number
+    q?: string
+    language?: string
+}): Promise<RepresentativeDto[]> => {
     const qs = new URLSearchParams({ lang: lang() })
-    if (params?.resort) qs.set('resort', params.resort)
+    if (params?.resortId != null) qs.set('resortId', String(params.resortId))
     if (params?.q) qs.set('q', params.q)
+    if (params?.language) qs.set('language', params.language)
     return apiFetch<RepresentativeDto[]>(`/representatives?${qs}`)
 }
+
+export const fetchResorts = (): Promise<ResortDto[]> => apiFetch<ResortDto[]>('/resorts')
 
 export const fetchRepresentative = (id: string): Promise<RepresentativeDto> =>
     apiFetch<RepresentativeDto>(`/representatives/${id}?lang=${lang()}`)

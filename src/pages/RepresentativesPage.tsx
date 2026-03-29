@@ -1,9 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, Text, Avatar, Button, TextField, Select, Loader, Hidden } from 'reshaped'
-import { fetchRepresentatives, resolvePhotoUrl } from '../api'
-import type { RepresentativeDto } from '../api'
+import { View, Text, Button, TextField, Select, Loader } from 'reshaped'
+import { fetchRepresentatives, fetchResorts } from '../api'
+import type { RepresentativeDto, ResortDto } from '../api'
+import { Representative } from './Representative'
+
+/** Съвпада с кодовете в админ и бекенд LANGUAGE_CODES */
+const LANGUAGE_LABELS = {
+    en: 'english',
+    ro: 'romanian',
+    ru: 'russian',
+    cz: 'czech',
+    pl: 'polish',
+    de: 'german',
+} as const
+
+const LANGUAGE_ORDER = ['en', 'ro', 'ru', 'cz', 'pl', 'de'] as const satisfies readonly (keyof typeof LANGUAGE_LABELS)[]
 
 type LoadState =
     | { status: 'loading' }
@@ -11,30 +23,48 @@ type LoadState =
     | { status: 'success'; data: RepresentativeDto[] }
 
 export function RepresentativesPage() {
-    const navigate = useNavigate()
-    const { t, i18n } = useTranslation()
+    const { t } = useTranslation()
     const [state, setState] = useState<LoadState>({ status: 'loading' })
-    const [resortFilter, setResortFilter] = useState('all')
+    const [resortOptions, setResortOptions] = useState<ResortDto[]>([])
+    const [resortFilter, setResortFilter] = useState('all') // 'all' or resort id as string
+    const [languageFilter, setLanguageFilter] = useState('all')
     const [q, setQ] = useState('')
 
+    // Load all resorts for the dropdown
+    useEffect(() => {
+        fetchResorts().then(setResortOptions).catch(() => { })
+    }, [])
+
+    // Load all representatives once; filtering happens client-side
     useEffect(() => {
         let cancelled = false
         fetchRepresentatives()
             .then((data) => { if (!cancelled) setState({ status: 'success', data }) })
             .catch((e: Error) => { if (!cancelled) setState({ status: 'error', message: e.message }) })
         return () => { cancelled = true }
-    }, [i18n.language])
+    }, [])
 
-    const data = useMemo(() => (state.status === 'success' ? state.data : []), [state])
-    const resorts = useMemo(() => Array.from(new Set(data.map((x: RepresentativeDto) => x.resort))).sort(), [data])
+    const allData = state.status === 'success' ? state.data : []
 
-    const filtered = useMemo(() => {
-        return data.filter((x: RepresentativeDto) => {
-            if (resortFilter !== 'all' && x.resort !== resortFilter) return false
-            if (q && !`${x.name} ${x.resort} ${x.phone ?? ''} ${x.email ?? ''}`.toLowerCase().includes(q.toLowerCase())) return false
-            return true
-        })
-    }, [data, resortFilter, q])
+    const data = allData.filter((r) => {
+        if (resortFilter !== 'all') {
+            const hasResort = r.resorts?.some(s => String(s.id) === resortFilter)
+            if (!hasResort) return false
+        }
+        if (languageFilter !== 'all') {
+            if (!r.languages?.includes(languageFilter)) return false
+        }
+        if (q.trim()) {
+            const term = q.trim().toLowerCase()
+            const match =
+                r.name.toLowerCase().includes(term) ||
+                r.phone?.toLowerCase().includes(term) ||
+                r.email?.toLowerCase().includes(term) ||
+                r.resorts?.some(s => s.name.toLowerCase().includes(term))
+            if (!match) return false
+        }
+        return true
+    })
 
     return (
         <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
@@ -45,28 +75,52 @@ export function RepresentativesPage() {
 
             {/* Filters */}
             <View shadow='raised' padding={5} borderRadius="medium" backgroundColor="white" paddingBottom={6}>
-                <View direction={{ s: 'column', m: 'row' }} gap={3} align="end">
+                <View direction={{ s: 'column', m: 'row' }} gap={3} >
                     <View grow>
                         <TextField
                             name="search"
-                            placeholder={t('representatives.title') + '…'}
+                            placeholder={t('representatives.search')}
                             value={q}
                             onChange={({ value }) => setQ(value)}
                             prefix="🔍"
                         />
                     </View>
-                    <View width={{ s: '100%', m: '180px' }}>
+                    <View width={{ s: '100%', m: '200px' }}>
                         <Select
                             name="resort"
                             value={resortFilter}
                             onChange={({ value }) => setResortFilter(value)}
                         >
-                            <Select.Option value="all">{t('representatives.title')}</Select.Option>
-                            {resorts.map((r: string) => <Select.Option key={r} value={r}>{r}</Select.Option>)}
+                            <option value="all">{t('usefulInfo.allResorts')}</option>
+                            {resortOptions.map((r: ResortDto) => (
+                                <option key={r.id} value={String(r.id)}>{r.name}</option>
+                            ))}
                         </Select>
                     </View>
-                    {(q || resortFilter !== 'all') && (
-                        <Button variant="ghost" color="primary" onClick={() => { setQ(''); setResortFilter('all') }}>✕</Button>
+                    <View width={{ s: '100%', m: '200px' }}>
+                        <Select
+                            name="language"
+                            value={languageFilter}
+                            onChange={({ value }) => setLanguageFilter(value)}
+                        >
+                            <option value="all">{t('representatives.allLanguages')}</option>
+                            {LANGUAGE_ORDER.map((code) => (
+                                <option key={code} value={code}>{LANGUAGE_LABELS[code]}</option>
+                            ))}
+                        </Select>
+                    </View>
+                    {(q || resortFilter !== 'all' || languageFilter !== 'all') && (
+                        <Button
+                            variant="ghost"
+                            color="primary"
+                            onClick={() => {
+                                setQ('')
+                                setResortFilter('all')
+                                setLanguageFilter('all')
+                            }}
+                        >
+                            ✕
+                        </Button>
                     )}
                 </View>
             </View>
@@ -81,7 +135,7 @@ export function RepresentativesPage() {
                     <Text color="critical">{state.message}</Text>
                 </View>
             )}
-            {state.status === 'success' && filtered.length === 0 && (
+            {state.status === 'success' && data.length === 0 && (
                 <View align="center" padding={16} gap={3}>
                     <Text variant="title-2">👤</Text>
                     <Text color="neutral-faded">{t('representatives.noResults')}</Text>
@@ -89,53 +143,8 @@ export function RepresentativesPage() {
             )}
 
             <View gap={4} paddingTop={6}>
-                {filtered.map((r: RepresentativeDto) => (
-                    <View
-                        key={r.id}
-                        shadow="overlay"
-                        padding={{ s: 4, m: 5 }}
-                        borderRadius="medium"
-                        backgroundColor="white"
-                        attributes={{ style: { cursor: 'pointer' }, onClick: () => navigate(`/representatives/${r.id}`) }}
-                    >
-                        <View direction={{ s: 'column', m: 'row' }} gap={{ s: 3, m: 4 }} align={{ s: 'start', m: 'center' }}>
-                            <Avatar
-                                src={resolvePhotoUrl(r.photoUrl) ?? undefined}
-                                initials={r.name.charAt(0)}
-                                size={{ s: 10, m: 14 }}
-                            />
-                            <View grow gap={1}>
-                                <Text variant="title-3" weight="bold">{r.name}</Text>
-                                <Text variant="caption-1" color="primary" weight="bold" attributes={{ style: { textTransform: 'uppercase', letterSpacing: '.6px' } }}>{r.resort}</Text>
-                                {r.phone && <Text variant="body-2" color="neutral-faded">📞 {r.phone}</Text>}
-                                {r.email && <Text variant="body-2" color="neutral-faded">✉️ {r.email}</Text>}
-                            </View>
-                            {/* Desktop: outline button on the right */}
-                            <Hidden hide={{ s: true, m: false }}>
-                                <Button
-                                    variant="outline"
-                                    color="primary"
-                                    size="small"
-                                    onClick={(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => { e.stopPropagation(); navigate(`/representatives/${r.id}`) }}
-                                >
-                                    {t('representatives.viewProfile')}
-                                </Button>
-                            </Hidden>
-                            {/* Mobile: full-width solid button at bottom */}
-                            <Hidden hide={{ s: false, m: true }}>
-                                <View width="100%">
-                                    <Button
-                                        variant="solid"
-                                        color="primary"
-                                        fullWidth
-                                        onClick={(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => { e.stopPropagation(); navigate(`/representatives/${r.id}`) }}
-                                    >
-                                        {t('representatives.viewProfile')}
-                                    </Button>
-                                </View>
-                            </Hidden>
-                        </View>
-                    </View>
+                {data.map((r: RepresentativeDto) => (
+                    <Representative key={r.id} rep={r} />
                 ))}
             </View>
         </View>

@@ -45,14 +45,14 @@ export function UsefulInfoPage() {
                 <View direction={{ s: 'column', m: 'row' }} gap={4} align="end">
                     <View minWidth="180px">
                         <Select name="resort" value={resortFilter} onChange={({ value }) => setResortFilter(value)}>
-                            <Select.Option value="all">{t('usefulInfo.allResorts')}</Select.Option>
-                            {resorts.map((r: string) => <Select.Option key={r} value={r}>{r}</Select.Option>)}
+                            <option value="all">{t('usefulInfo.allResorts')}</option>
+                            {resorts.map((r: string) => <option key={r} value={r}>{r}</option>)}
                         </Select>
                     </View>
                     <View minWidth="180px">
                         <Select name="category" value={categoryFilter} onChange={({ value }) => setCategoryFilter(value)}>
-                            <Select.Option value="all">{t('usefulInfo.allCategories')}</Select.Option>
-                            {categories.map((c: string) => <Select.Option key={c} value={c}>{c}</Select.Option>)}
+                            <option value="all">{t('usefulInfo.allCategories')}</option>
+                            {categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
                         </Select>
                     </View>
                     {(resortFilter !== 'all' || categoryFilter !== 'all') && (

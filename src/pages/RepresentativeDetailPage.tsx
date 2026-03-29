@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { View, Text, Avatar, Button, Divider, Loader } from 'reshaped'
+import { View, Text, Avatar, Button, Divider, Loader, Hidden, Badge, Grid } from 'reshaped'
 import { fetchRepresentative, resolvePhotoUrl } from '../api'
+import { ArrowBigLeft } from 'lucide-react'
 import type { RepresentativeDto } from '../api'
 
 type LoadState =
@@ -39,13 +40,14 @@ export function RepresentativeDetailPage() {
     }
 
     const r = state.data
+    const hotelsList = r.hotels ?? []
     const mapsUrl = `https://www.google.com/maps?q=${r.lat},${r.lng}`
 
     return (
         <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
             <View paddingBottom={6}>
-                <Button variant="ghost" onClick={() => navigate(-1)}>
-                    ← {t('repDetail.back')}
+                <Button icon={<ArrowBigLeft />} variant="outline" color="primary" onClick={() => navigate(-1)}>
+                    {t('repDetail.back')}
                 </Button>
             </View>
 
@@ -53,53 +55,72 @@ export function RepresentativeDetailPage() {
                 {/* Main */}
                 <View grow gap={6}>
                     {/* Header */}
-                    <View direction={{ s: 'column', m: 'row' }} gap={{ s: 4, m: 6 }} align="start">
-                        <Avatar
-                            src={resolvePhotoUrl(r.photoUrl) ?? undefined}
-                            initials={r.name.charAt(0)}
-                            size={{ s: 16, m: 20 }}
-                        />
-                        <View gap={2}>
-                            <Text as="h1" variant="title-1" weight="bold">{r.name}</Text>
-                            <Text variant="caption-1" weight="bold" color="primary" attributes={{ style: { textTransform: 'uppercase', letterSpacing: '.6px' } }}>{r.resort}</Text>
-                            {r.phone && (
-                                <View direction="row" align="center" gap={2}>
-                                    <Text>📞</Text>
-                                    <Text as="a" variant="body-2" attributes={{ href: `tel:${r.phone}`, style: { color: 'inherit' } }}>{r.phone}</Text>
-                                </View>
-                            )}
-                            {r.email && (
-                                <View direction="row" align="center" gap={2}>
-                                    <Text>✉️</Text>
-                                    <Text as="a" variant="body-2" attributes={{ href: `mailto:${r.email}`, style: { color: 'inherit' } }}>{r.email}</Text>
-                                </View>
-                            )}
+                    <View direction="column" gap={{ s: 4, m: 6 }} align={{ s: "start", l: "start" }}   >
+                        <View direction="row" align="center" gap={5}>
+                            <Avatar
+                                src={resolvePhotoUrl(r.photoUrl) ?? undefined}
+                                initials={r.name.charAt(0)}
+                                size={{ s: 16, m: 20 }}
+                            />
+                            <Text as="h1" variant="title-6" weight="bold">{r.name}</Text>
                         </View>
+                        {
+                            r.languages?.length && <View gap={2} direction="row" align="center">
+                                <Text variant="body-2" color="neutral-faded">{t('repDetail.languagesLabel')}</Text>
+                                {r.languages.map((l) => <Badge key={l} variant="outline" size="large" color="primary">{l}</Badge>)}
+                            </View>
+
+                        }
+                        {
+                            r.resorts?.length && <View gap={2} direction="row">
+                                <Text variant="body-2" color="neutral-faded">{t('repDetail.resortsLabel')}</Text>
+                                {r.resorts.map((s) => <Badge key={s.id} variant="outline" size="large" color="primary">{s.name}</Badge>)}
+                            </View>
+
+                        }
+                        {
+                            hotelsList.length > 0 && <View gap={2} direction="column">
+                                <Text variant="body-2" color="neutral-faded">{t('repDetail.hotelsLabel')}</Text>
+                                <View direction="row" gap={2}>
+                                    <Grid columns={{ s: 3, m: 5, l: 6 }} gap={2}>
+                                        {hotelsList.map((h, idx) => (
+                                            <Text key={idx} variant="body-1" color="primary">
+                                                {idx === hotelsList.length - 1 ? h : `${h}, `}
+                                            </Text>
+                                        ))}
+                                    </Grid>
+                                </View>
+                            </View>
+
+                        }
                     </View>
 
                     {/* Map */}
-                    <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white">                    <View paddingBottom={3}>
-                        <Text variant="title-3" weight="bold">
-                            {t('repDetail.location')} — {r.resort}
-                        </Text>
-                    </View>
-                        <iframe
-                            title="map"
-                            width="100%"
-                            height="320"
-                            style={{ border: 0, borderRadius: 8, display: 'block' }}
-                            src={`https://www.openstreetmap.org/export/embed.html?bbox=${r.lng - 0.02},${r.lat - 0.02},${r.lng + 0.02},${r.lat + 0.02}&layer=mapnik&marker=${r.lat},${r.lng}`}
-                        />
-                        <Text
-                            as="a"
-                            variant="body-2"
-                            weight="bold"
-                            color="primary"
-                            attributes={{ href: mapsUrl, target: '_blank', rel: 'noopener noreferrer', style: { display: 'inline-block', marginTop: 8 } }}
-                        >
-                            {t('repDetail.openMaps')}
-                        </Text>
-                    </View>
+                    <Hidden hide={{ s: true, m: false }}>
+                        <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white">
+                            <View paddingBottom={3}>
+                                <Text variant="title-6" weight="bold">
+                                    {t('repDetail.location')}
+                                </Text>
+                            </View>
+                            <iframe
+                                title="map"
+                                width="100%"
+                                height="320"
+                                style={{ border: 0, borderRadius: 8, display: 'block' }}
+                                src={`https://www.openstreetmap.org/export/embed.html?bbox=${r.lng - 0.02},${r.lat - 0.02},${r.lng + 0.02},${r.lat + 0.02}&layer=mapnik&marker=${r.lat},${r.lng}`}
+                            />
+                            <Text
+                                as="a"
+                                variant="body-2"
+                                weight="bold"
+                                color="primary"
+                                attributes={{ href: mapsUrl, target: '_blank', rel: 'noopener noreferrer', style: { display: 'inline-block', marginTop: 8 } }}
+                            >
+                                {t('repDetail.openMaps')}
+                            </Text>
+                        </View>
+                    </Hidden>
                 </View>
 
                 {/* Sidebar */}
@@ -111,7 +132,7 @@ export function RepresentativeDetailPage() {
                     width={{ s: '100%', l: '320px' }}
                     attributes={{ style: { flexShrink: 0 } }}
                 >
-                    <Text variant="title-3" weight="bold">{t('repDetail.contact')}</Text>
+                    <Text variant="title-6" weight="bold">{t('repDetail.contact')}</Text>
                     <Divider attributes={{ style: { margin: '12px 0' } }} />
                     <View gap={3}>
                         {r.phone && (
@@ -126,9 +147,6 @@ export function RepresentativeDetailPage() {
                                 <Text as="a" variant="body-2" weight="bold" attributes={{ href: `mailto:${r.email}`, style: { color: 'var(--rs-color-foreground-neutral)' } }}>{r.email}</Text>
                             </View>
                         )}
-                        <View direction="row" align="center" gap={2}>
-                            <Text>🏖️</Text><Text variant="body-2">{r.resort}</Text>
-                        </View>
                         <View direction="row" align="center" gap={2}>
                             <Text>📌</Text><Text variant="body-2" color="neutral-faded">{r.lat.toFixed(4)}, {r.lng.toFixed(4)}</Text>
                         </View>
@@ -157,6 +175,6 @@ export function RepresentativeDetailPage() {
                     </View>
                 </View>
             </View>
-        </View>
+        </View >
     )
 }
