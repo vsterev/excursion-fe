@@ -18,8 +18,8 @@ export function LoginPage() {
         try {
             await login(email, password)
             navigate('/admin')
-        } catch (err: any) {
-            setError(err.message ?? 'Грешка при вход')
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Грешка при вход')
         } finally {
             setLoading(false)
         }
