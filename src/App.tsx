@@ -12,6 +12,7 @@ import { LoginPage } from './pages/LoginPage'
 import { AdminExcursionsPage } from './pages/admin/AdminExcursionsPage'
 import { AdminRepresentativesPage } from './pages/admin/AdminRepresentativesPage'
 import { AdminUsefulInfoPage } from './pages/admin/AdminUsefulInfoPage'
+import { NotFoundPage } from './pages/NotFoundPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuth()
@@ -29,6 +30,7 @@ function AppRoutes() {
         <Route path="/representatives" element={<RepresentativesPage />} />
         <Route path="/representatives/:id" element={<RepresentativeDetailPage />} />
         <Route path="/useful-info" element={<UsefulInfoPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
 
       {/* Auth */}

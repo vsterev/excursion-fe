@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { View, Text, Avatar, Button, Divider, Loader, Hidden, Badge, Grid } from 'reshaped'
+import { View, Text, Avatar, Button, Divider, Loader, Hidden, Badge, Grid, useTheme } from 'reshaped'
 import { fetchRepresentative, resolvePhotoUrl } from '../api'
 import { ArrowBigLeft } from 'lucide-react'
 import type { RepresentativeDto } from '../api'
@@ -16,6 +16,10 @@ export function RepresentativeDetailPage() {
     const navigate = useNavigate()
     const { t, i18n } = useTranslation()
     const [state, setState] = useState<LoadState>({ status: 'loading' })
+
+    const { colorMode } = useTheme();
+    const badgeColor = colorMode === 'dark' ? 'primary' : 'neutral';
+    const badgeVariant = colorMode === 'dark' ? 'solid' : 'outline';
 
     useEffect(() => {
         if (!id) return
@@ -55,7 +59,7 @@ export function RepresentativeDetailPage() {
                 {/* Main */}
                 <View grow gap={6}>
                     {/* Header */}
-                    <View direction="column" gap={{ s: 4, m: 6 }} align={{ s: "start", l: "start" }}   >
+                    <View direction="column" gap={{ s: 4, m: 6 }} padding={5} borderRadius="medium" align="start" wrap backgroundColor="elevation-raised">
                         <View direction="row" align="center" gap={5}>
                             <Avatar
                                 src={resolvePhotoUrl(r.photoUrl) ?? undefined}
@@ -67,14 +71,14 @@ export function RepresentativeDetailPage() {
                         {
                             r.languages?.length && <View gap={2} direction="row" align="center">
                                 <Text variant="body-2" color="neutral-faded">{t('repDetail.languagesLabel')}</Text>
-                                {r.languages.map((l) => <Badge key={l} variant="outline" size="large" color="primary">{l}</Badge>)}
+                                {r.languages.map((l) => <Badge key={l} variant={badgeVariant} size="large" color={badgeColor}>{l}</Badge>)}
                             </View>
 
                         }
                         {
                             r.resorts?.length && <View gap={2} direction="row">
                                 <Text variant="body-2" color="neutral-faded">{t('repDetail.resortsLabel')}</Text>
-                                {r.resorts.map((s) => <Badge key={s.id} variant="outline" size="large" color="primary">{s.name}</Badge>)}
+                                {r.resorts.map((s) => <Badge key={s.id} variant={badgeVariant} size="large" color={badgeColor}>{s.name}</Badge>)}
                             </View>
 
                         }
@@ -97,7 +101,7 @@ export function RepresentativeDetailPage() {
 
                     {/* Map */}
                     <Hidden hide={{ s: true, m: false }}>
-                        <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white">
+                        <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="elevation-raised">
                             <View paddingBottom={3}>
                                 <Text variant="title-6" weight="bold">
                                     {t('repDetail.location')}
@@ -128,7 +132,7 @@ export function RepresentativeDetailPage() {
                     shadow="raised"
                     padding={6}
                     borderRadius="medium"
-                    backgroundColor="white"
+                    backgroundColor="elevation-raised"
                     width={{ s: '100%', l: '320px' }}
                     attributes={{ style: { flexShrink: 0 } }}
                 >
@@ -164,8 +168,8 @@ export function RepresentativeDetailPage() {
                         {r.phone && (
                             <Button
                                 as="a"
-                                variant="outline"
-                                color="primary"
+                                variant={badgeVariant}
+                                color={badgeColor}
                                 fullWidth
                                 attributes={{ href: `tel:${r.phone}` }}
                             >

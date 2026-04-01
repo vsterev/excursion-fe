@@ -1,6 +1,7 @@
 const de = {
   nav: {
     logo: '🌍 Trips',
+    home: 'Startseite',
     excursions: 'Ausflüge',
     representatives: 'Vertreter',
     usefulInfo: 'Nützliche Infos',
@@ -40,6 +41,7 @@ const de = {
     filterDest: 'Ziel',
     departure: 'Abfahrt von',
     from: 'ab',
+    price: 'Preis',
     noResults: 'Keine Ausflüge gefunden',
     loading: 'Laden...',
     error: 'Fehler beim Laden',
@@ -54,6 +56,7 @@ const de = {
     resort: 'Resort',
     phone: 'Telefon',
     email: 'E-Mail',
+    allLanguages: 'Alle Sprachen',
     noResults: 'Keine Vertreter gefunden',
     loading: 'Laden...',
     error: 'Fehler beim Laden',
@@ -92,6 +95,12 @@ const de = {
     languagesLabel: 'Gesprochene Sprachen:',
     resortsLabel: 'Betreute Resorts:',
     hotelsLabel: 'Betreute Hotels:',
+  },
+  notFound: {
+    code: '404',
+    title: 'Seite nicht gefunden',
+    subtitle: 'Die gesuchte Seite existiert nicht oder wurde verschoben.',
+    back: 'Zur Startseite',
   },
   common: {
     all: 'Alle',

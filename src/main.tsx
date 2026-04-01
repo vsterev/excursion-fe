@@ -10,7 +10,7 @@ import App from './App.tsx'
 function mount() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <Reshaped theme="reshaped">
+      <Reshaped theme="reshaped" defaultColorMode="light">
         <App />
       </Reshaped>
     </StrictMode>,

@@ -16,6 +16,32 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── Dark mode overrides ─────────────────────────── */
+[data-rs-color-mode="dark"] {
+  --primary-light: #1c3f4a;
+  --text: #cfe8ef;
+  --text-muted: #7aaebb;
+  --bg: #1a3540;
+  --border: rgba(100,180,200,0.14);
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* Match Reshaped's specificity to override its dark background tokens */
+[data-rs-theme~=reshaped][data-rs-color-mode=dark] {
+  --rs-color-background-page:              #1a3540;
+  --rs-color-background-page-faded:        #1c3844;
+  --rs-color-background-elevation-base:    #213d49;
+  --rs-color-background-elevation-raised:  #274450;
+  --rs-color-background-elevation-overlay: #2d4d5a;
+  --rs-color-background-neutral:           #345d68;
+  --rs-color-background-neutral-faded:     #243f4a;
+  --rs-color-foreground-neutral:           #cfe8ef;
+  --rs-color-foreground-neutral-faded:     #7aaebb;
+  --rs-color-border-neutral:               rgba(100,180,200,0.18);
+  --rs-color-border-neutral-faded:         rgba(100,180,200,0.10);
+}
+
 body { margin: 0; }
 
 #root {
@@ -124,7 +150,7 @@ body { margin: 0; }
   font-size: 14px;
   font-family: inherit;
   color: var(--text);
-  background: #fff;
+  background: var(--rs-color-background-elevation-raised, #fff);
   transition: border-color .15s;
   outline: none;
 }

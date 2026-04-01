@@ -10,10 +10,12 @@ export type ExcursionPhotoDto = {
 export type ExcursionDto = {
     id: string
     type: string
-    from: string
     destination: string
     description: string
     date: string | null
+    price: number | null
+    coverPhoto: string | null
+    departures: ResortDto[]
 }
 
 export type ExcursionDetailDto = ExcursionDto & {

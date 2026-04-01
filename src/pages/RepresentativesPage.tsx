@@ -74,7 +74,7 @@ export function RepresentativesPage() {
             </View>
 
             {/* Filters */}
-            <View shadow='raised' padding={5} borderRadius="medium" backgroundColor="white" paddingBottom={6}>
+            <View shadow='raised' padding={5} borderRadius="medium" backgroundColor="elevation-raised" paddingBottom={6}>
                 <View direction={{ s: 'column', m: 'row' }} gap={3} >
                     <View grow>
                         <TextField

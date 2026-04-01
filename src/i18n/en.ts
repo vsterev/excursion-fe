@@ -1,6 +1,7 @@
 const en = {
   nav: {
     logo: '🌍 Trips',
+    home: 'Home',
     excursions: 'Excursions',
     representatives: 'Representatives',
     usefulInfo: 'Useful Info',
@@ -40,6 +41,7 @@ const en = {
     filterDest: 'Destination',
     departure: 'Departure from',
     from: 'from',
+    price: 'Price',
     noResults: 'No excursions found',
     loading: 'Loading...',
     error: 'Error loading data',
@@ -54,6 +56,7 @@ const en = {
     resort: 'Resort',
     phone: 'Phone',
     email: 'Email',
+    allLanguages: 'All languages',
     noResults: 'No representatives found',
     loading: 'Loading...',
     error: 'Error loading data',
@@ -92,6 +95,12 @@ const en = {
     languagesLabel: 'Languages spoken:',
     resortsLabel: 'Resorts served:',
     hotelsLabel: 'Hotels served:',
+  },
+  notFound: {
+    code: '404',
+    title: 'Page Not Found',
+    subtitle: 'The page you are looking for does not exist or has been moved.',
+    back: 'Go to Home',
   },
   common: {
     all: 'All',

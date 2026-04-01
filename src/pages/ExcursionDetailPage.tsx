@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { View, Text, Button, Badge, Loader } from 'reshaped'
 import { fetchExcursion, resolvePhotoUrl } from '../api'
 import type { ExcursionDetailDto } from '../api'
+import { ArrowBigLeft } from 'lucide-react'
 
 type Photo = ExcursionDetailDto['photos'][number]
 
@@ -48,17 +49,21 @@ export function ExcursionDetailPage() {
 
     return (
         <View maxWidth="1200px" width="100%" paddingInline={{ s: 4, m: 6 }} paddingBlock={{ s: 5, m: 8 }} attributes={{ style: { margin: '0 auto' } }}>
-            <Button variant="ghost" onClick={() => navigate(-1)} attributes={{ style: { marginBottom: 24 } }}>
-                ← {t('detail.back')}
-            </Button>
+            <View paddingBottom={6} justify="space-between" direction="row" align="center">
+                <Button icon={<ArrowBigLeft />} variant="outline" color="primary" onClick={() => navigate(-1)}>
+                    {t('repDetail.back')}
+                </Button>
+                <Badge color="primary">{t(`home.categories.${x.type}`, { defaultValue: x.type })}</Badge>
+                {x.departures?.length > 0 && (
+                    <Text variant="body-2" color="neutral-faded">
+                        📍 {t('detail.departureFrom')} {x.departures.map(d => d.name).join(', ')}
+                    </Text>
+                )}
+            </View>
 
             {/* Header */}
-            <View gap={3} attributes={{ style: { marginBottom: 24 } }}>
-                <View direction="row" gap={3} align="center" wrap>
-                    <Badge color="primary">{t(`home.categories.${x.type}`, { defaultValue: x.type })}</Badge>
-                    <Text variant="body-2" color="neutral-faded">{t('detail.departureFrom')} {x.from}</Text>
-                </View>
-                <Text as="h1" variant="title-1" weight="bold">{x.destination}</Text>
+            <View gap={3} paddingBottom={5}>
+                <Text as="h1" variant={{ s: 'title-6', m: 'title-4' }} weight="bold">{x.destination}</Text>
                 {x.date && (
                     <Text variant="body-2" color="neutral-faded">
                         📅 {new Date(x.date).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -68,8 +73,8 @@ export function ExcursionDetailPage() {
 
             {/* Photos */}
             {x.photos.length > 0 && (
-                <View gap={3} attributes={{ style: { marginBottom: 32 } }}>
-                    <View attributes={{ style: { borderRadius: 12, overflow: 'hidden' } }}>
+                <View gap={3} paddingBottom={5}>
+                    <View borderRadius="medium" overflow="hidden" backgroundColor='elevation-raised'>
                         <img
                             src={resolvePhotoUrl(x.photos[activePhoto].url)!}
                             alt={x.photos[activePhoto].caption ?? x.destination}
@@ -103,8 +108,8 @@ export function ExcursionDetailPage() {
             )}
 
             {/* Description */}
-            <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white">
-                <Text variant="title-3" weight="bold" attributes={{ style: { marginBottom: 12 } }}>{t('detail.description')}</Text>
+            <View shadow="raised" padding={6} borderRadius="medium" backgroundColor='elevation-raised'>
+                <Text variant={{ s: 'title-6', m: 'title-4' }} weight="bold" attributes={{ style: { marginBottom: 12 } }}>{t('detail.description')}</Text>
                 <div
                     className="excursion-description"
                     dangerouslySetInnerHTML={{ __html: x.description }}

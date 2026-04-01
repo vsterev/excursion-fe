@@ -19,7 +19,7 @@ export function HomePage() {
                 position="relative"
                 overflow="hidden"
                 height={{ s: 40, m: 105 }}
-                attributes={{ style: { background: 'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)' } }}
+            // attributes={{ style: { background: 'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)' } }}
 
             >
                 <img

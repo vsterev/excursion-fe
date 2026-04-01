@@ -1,6 +1,7 @@
 const bg = {
   nav: {
     logo: '🌍 Trips',
+    home: 'Начало',
     excursions: 'Екскурзии',
     representatives: 'Представители',
     usefulInfo: 'Полезна информация',
@@ -40,6 +41,7 @@ const bg = {
     filterDest: 'Дестинация',
     departure: 'Тръгване от',
     from: 'от',
+    price: 'Цена',
     noResults: 'Няма намерени екскурзии',
     loading: 'Зареждане...',
     error: 'Грешка при зареждане',
@@ -54,6 +56,7 @@ const bg = {
     resort: 'Курорт',
     phone: 'Телефон',
     email: 'Имейл',
+    allLanguages: 'Всички езици',
     noResults: 'Няма намерени представители',
     loading: 'Зареждане...',
     error: 'Грешка при зареждане',
@@ -92,6 +95,12 @@ const bg = {
     languagesLabel: 'Говорими езици:',
     resortsLabel: 'Обслужвани курорти:',
     hotelsLabel: 'Обслужвани хотели:',
+  },
+  notFound: {
+    code: '404',
+    title: 'Страницата не е намерена',
+    subtitle: 'Страницата, която търсите, не съществува или е преместена.',
+    back: 'Към началото',
   },
   common: {
     all: 'Всички',
