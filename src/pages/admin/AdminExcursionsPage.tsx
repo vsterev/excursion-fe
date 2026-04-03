@@ -21,12 +21,13 @@ const QUILL_MODULES = {
     ],
 }
 
-const TYPES = ['Културна', 'Планинска', 'Развлекателна', 'Природна']
+/** Канонични типове на английски — съвпадат с колоната type в БД и преводите. */
+const TYPES = ['Cultural', 'Mountain', 'Leisure', 'Nature', 'Sightseeing'] as const
 
 
 function emptyForm() {
     return {
-        type: TYPES[2],
+        type: TYPES[2] as string,
         resortIds: [] as number[],
         destination: '',
         description: '',
@@ -83,7 +84,7 @@ export function AdminExcursionsPage() {
                 if (Number.isFinite(id) && !map.has(id)) map.set(id, { id, name: s.name })
             }
         }
-        return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'bg', { sensitivity: 'base' }))
+        return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }))
     }, [resortOptions, showForm, editId, rows])
 
     const resortAutocompleteItems = useMemo(() => {
@@ -160,7 +161,7 @@ export function AdminExcursionsPage() {
 
 
     return (
-        <View padding={{ s: 4, m: 8 }} backgroundColor="elevation-raised" gap={6}>
+        <View padding={{ s: 4, m: 8 }} gap={5}>
             <View direction="row" justify="space-between" align="center">
                 <Text as="h1" variant="title-5" weight="bold">🗺️ Екскурзии</Text>
                 <Button variant="solid" color="primary" onClick={startNew}>+ Добави екскурзия</Button>
@@ -174,7 +175,7 @@ export function AdminExcursionsPage() {
                         <View gap={4}>
                             <Grid columns={{ s: 1, m: 3 }} gap={4}>
                                 <View gap={1}>
-                                    <FormControl.Label>Type</FormControl.Label>
+                                    <FormControl.Label>Type (English)</FormControl.Label>
                                     <View gap={3} direction="row" align="center" wrap>
                                         <RadioGroup
                                             name="type"
@@ -190,8 +191,8 @@ export function AdminExcursionsPage() {
                                     </View>
                                 </View>
                                 <View gap={1}>
-                                    <FormControl.Label>Заглавие *</FormControl.Label>
-                                    <TextField name="destination" placeholder="Несебър" value={form.destination} onChange={({ value }) => setForm(f => ({ ...f, destination: value }))} />
+                                    <FormControl.Label>Title / destination (English) *</FormControl.Label>
+                                    <TextField name="destination" placeholder="Nessebar" value={form.destination} onChange={({ value }) => setForm(f => ({ ...f, destination: value }))} />
                                 </View>
                                 <View gap={1}>
                                     <FormControl.Label>Цена €</FormControl.Label>
@@ -258,13 +259,14 @@ export function AdminExcursionsPage() {
                                 </View>
                             </Grid>
                             <View gap={1}>
-                                <FormControl.Label>Описание *</FormControl.Label>
+                                <FormControl.Label>Description (English) *</FormControl.Label>
+                                <FormControl.Helper>Запазване → автоматичен превод към румънски, молдовски и украински.</FormControl.Helper>
                                 <ReactQuill
                                     theme="snow"
                                     value={form.description}
                                     onChange={(value) => setForm(f => ({ ...f, description: value }))}
                                     modules={QUILL_MODULES}
-                                    placeholder="Описание на екскурзията…"
+                                    placeholder="Excursion description in English…"
                                     style={{ minHeight: 200 }}
                                 />
                             </View>

@@ -53,8 +53,8 @@ export function Representative({ rep }: { rep: RepresentativeDto }) {
                         {/* Desktop: outline button on the right */}
                         <Hidden hide={{ s: true, m: false }}>
                             <Button
-                                variant="outline"
-                                color="primary"
+                                variant={badgeVariant}
+                                color={badgeColor}
                                 size="small"
                                 onClick={(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => { e.stopPropagation(); navigate(`/representatives/${rep.id}`) }}
                             >
@@ -63,6 +63,76 @@ export function Representative({ rep }: { rep: RepresentativeDto }) {
                         </Hidden>
                     </View>
                 </View>
+            </View>
+        </Actionable>
+    )
+}
+
+/** Компактна карта за секцията „представители“ на страницата на екскурзия. */
+export function RepresentativeCompact({ rep }: { rep: RepresentativeDto }) {
+    const navigate = useNavigate()
+    const { colorMode } = useTheme()
+    const badgeVariant = colorMode === 'dark' ? 'solid' : 'outline'
+
+    return (
+        <Actionable
+            onClick={() => navigate(`/representatives/${rep.id}`)}
+            attributes={{ style: { display: 'block', width: '100%' } }}
+        >
+            <View
+                shadow="overlay"
+                padding={4}
+                borderRadius="medium"
+                backgroundColor="elevation-raised"
+                gap={3}
+            >
+                <View direction="row" gap={3} align="center">
+                    <Avatar
+                        src={resolvePhotoUrl(rep.photoUrl) ?? undefined}
+                        initials={rep.name.charAt(0)}
+                        size={12}
+                    />
+                    <View direction="row" grow gap={3} justify="space-between">
+                        <View gap={3} grow>
+                            <Text variant="featured-2">
+                                {rep.name}
+                            </Text>
+                            {rep.phone && (
+                                <Text variant="body-1" color="neutral-faded">📞 {rep.phone}</Text>
+                            )}
+                        </View>
+                        <View direction="column" gap={2}>
+                            {rep.languages?.length ? (
+                                <View direction="row" gap={3}>
+                                    {rep.languages.map((l) => (
+                                        <Badge key={l} variant={badgeVariant} size="large" color="primary">
+                                            {l}
+                                        </Badge>
+                                    ))}
+                                </View>
+                            ) : null}
+                            <Hidden hide={{ s: true, m: false }}>
+                                <View direction="row" gap={2}>
+                                    {rep.resorts.map((r) => (
+                                        <Badge key={r.id} variant={badgeVariant} color="primary" size="large">
+                                            {r.name}
+                                        </Badge>
+                                    ))}
+                                </View>
+                            </Hidden>
+                        </View>
+                    </View>
+
+                </View>
+                <Hidden hide={{ s: false, m: true }}>
+                    <View direction="row" gap={2} justify="end">
+                        {rep.resorts.map((r) => (
+                            <Badge key={r.id} variant={badgeVariant} size="large" color="primary">
+                                {r.name}
+                            </Badge>
+                        ))}
+                    </View>
+                </Hidden>
             </View>
         </Actionable>
     )

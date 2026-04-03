@@ -12,10 +12,11 @@ function stripHtml(html: string): string {
 }
 
 const TYPE_EMOJI: Record<string, string> = {
-    'Културна': '🏛️',
-    'Природна': '🌿',
-    'Планинска': '⛰️',
-    'Развлекателна': '🎢',
+    Cultural: '🏛️',
+    Nature: '🌿',
+    Mountain: '⛰️',
+    Leisure: '🎢',
+    Sightseeing: '🚌',
 }
 
 type LoadState =
@@ -41,7 +42,7 @@ export function ExcursionsPage() {
     }, [i18n.language])
 
     const data = useMemo(() => (state.status === 'success' ? state.data : []), [state])
-    const types = useMemo(() => Array.from(new Set(data.map((x: ExcursionDto) => x.type))).sort(), [data])
+    const types = useMemo(() => Array.from(new Set(data.map((x: ExcursionDto) => x.typeKey))).sort(), [data])
     const resortOptions = useMemo(() => {
         const map = new Map<number, ResortDto>()
         for (const x of data) for (const d of x.departures ?? []) map.set(d.id, d)
@@ -50,9 +51,9 @@ export function ExcursionsPage() {
 
     const filtered = useMemo(() => {
         return data.filter((x: ExcursionDto) => {
-            if (typeFilter !== 'all' && x.type !== typeFilter) return false
+            if (typeFilter !== 'all' && x.typeKey !== typeFilter) return false
             if (resortFilter !== 'all' && !(x.departures ?? []).some(d => String(d.id) === resortFilter)) return false
-            if (q && !`${x.destination} ${(x.departures ?? []).map(d => d.name).join(' ')} ${stripHtml(x.description)} ${x.type}`.toLowerCase().includes(q.toLowerCase())) return false
+            if (q && !`${x.destination} ${(x.departures ?? []).map(d => d.name).join(' ')} ${stripHtml(x.description)} ${x.type} ${x.typeKey}`.toLowerCase().includes(q.toLowerCase())) return false
             return true
         })
     }, [data, typeFilter, resortFilter, q])
@@ -81,15 +82,15 @@ export function ExcursionsPage() {
                     >
                         {t('excursions.allTypes')}
                     </Button>
-                    {types.map((type: string) => (
+                    {types.map((typeKey: string) => (
                         <Button
-                            key={type}
-                            variant={typeFilter === type ? 'solid' : 'outline'}
-                            color={typeFilter === type ? 'primary' : 'neutral'}
+                            key={typeKey}
+                            variant={typeFilter === typeKey ? 'solid' : 'outline'}
+                            color={typeFilter === typeKey ? 'primary' : 'neutral'}
                             size="small"
-                            onClick={() => setTypeFilter(type)}
+                            onClick={() => setTypeFilter(typeKey)}
                         >
-                            {TYPE_EMOJI[type] ?? ''} {t(`home.categories.${type}`, type)}
+                            {TYPE_EMOJI[typeKey] ?? ''} {t(`home.categories.${typeKey}`, typeKey)}
                         </Button>
                     ))}
                 </View>
@@ -173,12 +174,12 @@ export function ExcursionsPage() {
                                     justify="center"
                                     attributes={{ style: { height: 160, flexShrink: 0, background: 'linear-gradient(135deg,#667eea,#764ba2)', fontSize: 48 } }}
                                 >
-                                    {TYPE_EMOJI[x.type] ?? '🗺️'}
+                                    {TYPE_EMOJI[x.typeKey] ?? '🗺️'}
                                 </View>
                             )}
                             <View padding={4} gap={2} direction="column" attributes={{ style: { overflow: 'hidden', minWidth: 0 } }}>
                                 <View direction="row" gap={2} align="center" wrap justify="space-between">
-                                    <Badge color="primary" size="large">{TYPE_EMOJI[x.type] ?? ''} {t(`home.categories.${x.type}`, x.type)}</Badge>
+                                    <Badge color="primary" size="large">{TYPE_EMOJI[x.typeKey] ?? ''} {t(`home.categories.${x.typeKey}`, x.type)}</Badge>
                                     {x.price != null && (
                                         <Badge color="positive" size="large">{t('excursions.from')} {x.price} €</Badge>
                                     )}

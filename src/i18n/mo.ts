@@ -1,4 +1,4 @@
-const ro = {
+const mo = {
   nav: {
     logo: '🌍 Trips',
     home: 'Acasă',
@@ -28,8 +28,8 @@ const ro = {
       Cultural: 'Culturală',
       Nature: 'Natură',
       Mountain: 'Montană',
-      Leisure: 'Agrement',
-      Sightseeing: 'Tur panoramic',
+      Leisure: 'Timp liber',
+      Sightseeing: 'Excursie panoramică',
     },
   },
   excursions: {
@@ -175,5 +175,5 @@ const ro = {
   },
 }
 
-export default ro
+export default mo
 

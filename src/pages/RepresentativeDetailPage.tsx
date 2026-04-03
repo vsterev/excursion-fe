@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { View, Text, Avatar, Button, Divider, Loader, Hidden, Badge, Grid, useTheme } from 'reshaped'
+import { View, Text, Avatar, Button, Loader, Hidden, Badge, Grid, useTheme } from 'reshaped'
 import { fetchRepresentative, resolvePhotoUrl } from '../api'
+import { RepresentativeContact } from '../components/RepresentativeContact'
 import { ArrowBigLeft } from 'lucide-react'
 import type { RepresentativeDto } from '../api'
 
@@ -18,7 +19,7 @@ export function RepresentativeDetailPage() {
     const [state, setState] = useState<LoadState>({ status: 'loading' })
 
     const { colorMode } = useTheme();
-    const badgeColor = colorMode === 'dark' ? 'primary' : 'neutral';
+    const badgeColor = colorMode === 'dark' ? 'primary' : 'primary';
     const badgeVariant = colorMode === 'dark' ? 'solid' : 'outline';
 
     useEffect(() => {
@@ -50,7 +51,7 @@ export function RepresentativeDetailPage() {
     return (
         <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
             <View paddingBottom={6}>
-                <Button icon={<ArrowBigLeft />} variant="outline" color="primary" onClick={() => navigate(-1)}>
+                <Button icon={<ArrowBigLeft />} variant={badgeVariant} color="primary" onClick={() => navigate(-1)}>
                     {t('repDetail.back')}
                 </Button>
             </View>
@@ -127,57 +128,7 @@ export function RepresentativeDetailPage() {
                     </Hidden>
                 </View>
 
-                {/* Sidebar */}
-                <View
-                    shadow="raised"
-                    padding={6}
-                    borderRadius="medium"
-                    backgroundColor="elevation-raised"
-                    width={{ s: '100%', l: '320px' }}
-                    attributes={{ style: { flexShrink: 0 } }}
-                >
-                    <Text variant="title-6" weight="bold">{t('repDetail.contact')}</Text>
-                    <Divider attributes={{ style: { margin: '12px 0' } }} />
-                    <View gap={3}>
-                        {r.phone && (
-                            <View direction="row" align="center" gap={2}>
-                                <Text>📞</Text>
-                                <Text as="a" variant="body-2" weight="bold" attributes={{ href: `tel:${r.phone}`, style: { color: 'var(--rs-color-foreground-neutral)' } }}>{r.phone}</Text>
-                            </View>
-                        )}
-                        {r.email && (
-                            <View direction="row" align="center" gap={2}>
-                                <Text>✉️</Text>
-                                <Text as="a" variant="body-2" weight="bold" attributes={{ href: `mailto:${r.email}`, style: { color: 'var(--rs-color-foreground-neutral)' } }}>{r.email}</Text>
-                            </View>
-                        )}
-                        <View direction="row" align="center" gap={2}>
-                            <Text>📌</Text><Text variant="body-2" color="neutral-faded">{r.lat.toFixed(4)}, {r.lng.toFixed(4)}</Text>
-                        </View>
-                    </View>
-                    <View gap={3} paddingTop={5}>
-                        <Button
-                            as="a"
-                            variant="solid"
-                            color="primary"
-                            fullWidth
-                            attributes={{ href: mapsUrl, target: '_blank', rel: 'noopener noreferrer' }}
-                        >
-                            {t('repDetail.viewMap')}
-                        </Button>
-                        {r.phone && (
-                            <Button
-                                as="a"
-                                variant={badgeVariant}
-                                color={badgeColor}
-                                fullWidth
-                                attributes={{ href: `tel:${r.phone}` }}
-                            >
-                                {t('repDetail.call')}
-                            </Button>
-                        )}
-                    </View>
-                </View>
+                <RepresentativeContact rep={r} mapsUrl={mapsUrl} />
             </View>
         </View >
     )

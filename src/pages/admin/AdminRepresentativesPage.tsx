@@ -14,6 +14,7 @@ function emptyForm() {
         resortIds: [] as number[],
         name: '',
         phone: '',
+        whatsapp: '',
         email: '',
         photoUrl: '',
         lat: '',
@@ -29,6 +30,7 @@ interface RepRow {
     resorts: { id: number; name: string }[]
     name: string
     phone?: string | null
+    whatsapp?: string | null
     email?: string | null
     photoUrl?: string | null
     lat: number
@@ -38,12 +40,11 @@ interface RepRow {
 }
 
 const LANG_OPTIONS = [
-    { value: 'ru', label: 'Руски' },
-    { value: 'cs', label: 'Чешки' },
-    { value: 'pl', label: 'Полски' },
-    { value: 'en', label: 'Английски' },
-    { value: 'ro', label: 'Румънски' },
-    { value: 'de', label: 'Немски' },
+    { value: 'en', label: 'English' },
+    { value: 'ro', label: 'Română' },
+    { value: 'mo', label: 'Moldovenească' },
+    { value: 'uk', label: 'Українська' },
+    { value: 'ru', label: 'Русский' },
 ]
 
 /** Ако има нов ред — всеки ред е хотел (позволява запетая в името). Иначе — разделяне по запетая. */
@@ -102,7 +103,7 @@ export function AdminRepresentativesPage() {
             }
         }
         return Array.from(map.values()).sort((a, b) =>
-            a.name.localeCompare(b.name, 'bg', { sensitivity: 'base' }),
+            a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }),
         )
     }, [resortOptions, showForm, editId, rows])
 
@@ -127,7 +128,7 @@ export function AdminRepresentativesPage() {
             ...emptyForm(),
             resortIds: row.resorts.map((s) => Number(s.id)).filter((id) => Number.isFinite(id)),
             name: row.name,
-            phone: row.phone ?? '', email: row.email ?? '',
+            phone: row.phone ?? '', whatsapp: row.whatsapp ?? '', email: row.email ?? '',
             photoUrl: row.photoUrl ?? '',
             lat: String(row.lat), lng: String(row.lng),
             languages: row.languages ?? [],
@@ -148,7 +149,10 @@ export function AdminRepresentativesPage() {
         const body = {
             resortIds: form.resortIds,
             name: form.name,
-            phone: form.phone || undefined, email: form.email || undefined,
+            phone: form.phone || undefined,
+            /** Винаги подаваме стойност при PUT, за да може да се изчисти полето (null). */
+            whatsapp: form.whatsapp.trim() || null,
+            email: form.email || undefined,
             photoUrl: form.photoUrl || undefined,
             lat: Number(form.lat), lng: Number(form.lng),
             hotels: parseHotelsInput(form.hotelsText),
@@ -187,8 +191,8 @@ export function AdminRepresentativesPage() {
             </View>
 
             {showForm && (
-                <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white" gap={5}>
-                    <Text variant="title-3" weight="bold">{editId ? 'Редактиране на представител' : 'Нов представител'}</Text>
+                <View shadow="raised" padding={6} borderRadius="medium" gap={5}>
+                    <Text variant="title-5">{editId ? 'Редактиране на представител' : 'Нов представител'}</Text>
                     <Divider />
                     <form onSubmit={handleSave}>
                         <View gap={4}>
@@ -257,6 +261,11 @@ export function AdminRepresentativesPage() {
                                 <View gap={1}>
                                     <Text variant="caption-1" weight="bold">Телефон</Text>
                                     <TextField name="phone" placeholder="+359 888 123 456" value={form.phone} onChange={({ value }) => setForm(p => ({ ...p, phone: value }))} />
+                                </View>
+                                <View gap={1}>
+                                    <Text variant="caption-1" weight="bold">WhatsApp</Text>
+                                    <Text variant="caption-1" color="neutral-faded">Номер за чат в приложението (международен формат, напр. +359888123456)</Text>
+                                    <TextField name="whatsapp" placeholder="+359888123456" value={form.whatsapp} onChange={({ value }) => setForm(p => ({ ...p, whatsapp: value }))} />
                                 </View>
                                 <View gap={1}>
                                     <Text variant="caption-1" weight="bold">Email</Text>
@@ -338,6 +347,7 @@ export function AdminRepresentativesPage() {
                             <Table.Heading>Имe</Table.Heading>
                             <Table.Heading>Курорти</Table.Heading>
                             <Table.Heading>Телефон</Table.Heading>
+                            <Table.Heading>WhatsApp</Table.Heading>
                             <Table.Heading>Email</Table.Heading>
                             <Table.Heading>Координати</Table.Heading>
                             <Table.Heading></Table.Heading>
@@ -358,6 +368,7 @@ export function AdminRepresentativesPage() {
                                     <Text variant="body-2">{r.resorts?.length ? r.resorts.map((s) => s.name).join(', ') : '—'}</Text>
                                 </Table.Cell>
                                 <Table.Cell><Text color="neutral-faded">{r.phone ?? '—'}</Text></Table.Cell>
+                                <Table.Cell><Text color="neutral-faded">{r.whatsapp ?? '—'}</Text></Table.Cell>
                                 <Table.Cell><Text color="neutral-faded">{r.email ?? '—'}</Text></Table.Cell>
                                 <Table.Cell><Text variant="caption-1" color="neutral-faded">{r.lat}, {r.lng}</Text></Table.Cell>
                                 <Table.Cell>

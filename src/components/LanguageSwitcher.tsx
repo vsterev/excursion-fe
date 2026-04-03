@@ -2,18 +2,15 @@ import { useTranslation } from 'react-i18next'
 import { Button, Select, Hidden, Tooltip, View } from 'reshaped'
 
 const LANGS = [
-  { code: 'bg', label: 'БГ', flag: '🇧🇬' },
   { code: 'en', label: 'EN', flag: '🇬🇧' },
-  { code: 'de', label: 'DE', flag: '🇩🇪' },
-  { code: 'cs', label: 'CS', flag: '🇨🇿' },
-  { code: 'pl', label: 'PL', flag: '🇵🇱' },
   { code: 'ro', label: 'RO', flag: '🇷🇴' },
-
+  { code: 'mo', label: 'MO', flag: '🇲🇩' },
+  { code: 'uk', label: 'UK', flag: '🇺🇦' },
 ]
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation()
-  const current = i18n.language?.slice(0, 2) ?? 'bg'
+  const current = i18n.language?.slice(0, 2) ?? 'en'
 
   return (
     <View gap={4} direction='row' >

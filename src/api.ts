@@ -9,6 +9,8 @@ export type ExcursionPhotoDto = {
 
 export type ExcursionDto = {
     id: string
+    /** Каноничен тип (английски), за филтри и URL */
+    typeKey: string
     type: string
     destination: string
     description: string
@@ -32,6 +34,7 @@ export type RepresentativeDto = {
     id: string
     name: string
     phone: string | null
+    whatsapp: string | null
     email: string | null
     photoUrl: string | null
     lat: number
@@ -64,7 +67,7 @@ export function resolvePhotoUrl(url: string | null | undefined): string | null {
 }
 
 function lang() {
-    return i18n.language?.slice(0, 2) ?? 'bg'
+    return i18n.language?.slice(0, 2) ?? 'en'
 }
 
 async function apiFetch<T>(path: string): Promise<T> {

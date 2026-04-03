@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { View, Text, Button, Badge, Loader } from 'reshaped'
-import { fetchExcursion, resolvePhotoUrl } from '../api'
-import type { ExcursionDetailDto } from '../api'
+import { View, Text, Button, Badge, Loader, Card, Grid, useTheme } from 'reshaped'
+import { fetchExcursion, fetchRepresentatives, resolvePhotoUrl } from '../api'
+import type { ExcursionDetailDto, RepresentativeDto } from '../api'
 import { ArrowBigLeft } from 'lucide-react'
+import { RepresentativeCompact } from './Representative'
 
 type Photo = ExcursionDetailDto['photos'][number]
 
@@ -19,6 +20,12 @@ export function ExcursionDetailPage() {
     const { t, i18n } = useTranslation()
     const [state, setState] = useState<LoadState>({ status: 'loading' })
     const [activePhoto, setActivePhoto] = useState(0)
+    const [representatives, setRepresentatives] = useState<RepresentativeDto[]>([])
+
+
+    const { colorMode } = useTheme();
+    const badgeColor = colorMode === 'dark' ? 'primary' : 'primary';
+    const badgeVariant = colorMode === 'dark' ? 'solid' : 'outline';
 
     useEffect(() => {
         if (!id) return
@@ -28,6 +35,28 @@ export function ExcursionDetailPage() {
             .catch((e: Error) => { if (!cancelled) setState({ status: 'error', message: e.message }) })
         return () => { cancelled = true }
     }, [id, i18n.language])
+
+    useEffect(() => {
+        let cancelled = false
+        fetchRepresentatives()
+            .then((data) => { if (!cancelled) setRepresentatives(data) })
+            .catch(() => { if (!cancelled) setRepresentatives([]) })
+        return () => { cancelled = true }
+    }, [i18n.language])
+
+    const departureRepresentatives = useMemo(() => {
+        if (state.status !== 'success') return []
+        const x = state.data
+        const departureIds = new Set((x.departures ?? []).map((d) => d.id))
+        if (departureIds.size === 0) return []
+        const seen = new Set<string>()
+        return representatives.filter((rep) => {
+            if (!rep.resorts?.some((r) => departureIds.has(r.id))) return false
+            if (seen.has(rep.id)) return false
+            seen.add(rep.id)
+            return true
+        })
+    }, [state, representatives])
 
     if (state.status === 'loading') {
         return <View align="center" padding={16}><Loader size="large" /></View>
@@ -47,7 +76,7 @@ export function ExcursionDetailPage() {
     return (
         <View maxWidth="1200px" gap={4} width="100%" paddingInline={{ s: 4, m: 6 }} paddingBlock={{ s: 5, m: 8 }} attributes={{ style: { margin: '0 auto' } }}>
             <View justify="space-between" direction="row" align="center">
-                <Button icon={<ArrowBigLeft />} variant="outline" color="primary" onClick={() => navigate(-1)}>
+                <Button icon={<ArrowBigLeft />} variant={badgeVariant} color={badgeColor} onClick={() => navigate(-1)}>
                     {t('repDetail.back')}
                 </Button>
                 {x.departures?.length > 0 && (
@@ -59,7 +88,7 @@ export function ExcursionDetailPage() {
 
             {/* Header */}
             <View direction={{ s: "column", m: "row" }} align={{ s: "start", m: "center" }} gap={4}>
-                <Badge size="large" color="primary">{t(`home.categories.${x.type}`, { defaultValue: x.type })}</Badge>
+                <Badge size="large" color="primary">{t(`home.categories.${x.typeKey}`, { defaultValue: x.type })}</Badge>
                 <Text as="h1" variant={{ s: 'title-6', m: 'title-5' }}>{x.destination}</Text>
             </View>
 
@@ -118,6 +147,23 @@ export function ExcursionDetailPage() {
                     }}
                 />
             </View>
+
+            {departureRepresentatives.length > 0 && (
+                <Card>
+                    <View gap={4} paddingTop={2}>
+                        <Text variant="featured-1" color="neutral-faded">
+                            {t('detail.departureRepresentativesHint')}
+                        </Text>
+                        <View gap={3} attributes={{ style: { alignItems: 'stretch' } }}>
+                            <Grid columns={{ s: 1, m: 2 }} gap={4}>
+                                {departureRepresentatives.map((rep) => (
+                                    <RepresentativeCompact key={rep.id} rep={rep} />
+                                ))}
+                            </Grid>
+                        </View>
+                    </View>
+                </Card>
+            )}
         </View>
     )
 }

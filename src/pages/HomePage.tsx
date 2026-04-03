@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { View, Text, Grid, Hidden } from 'reshaped'
 
 const CATEGORIES = [
-    { emoji: '🏛️', key: 'Културна' as const },
-    { emoji: '🌿', key: 'Природна' as const },
-    { emoji: '⛰️', key: 'Планинска' as const },
-    { emoji: '🎢', key: 'Развлекателна' as const },
+    { emoji: '🏛️', key: 'Cultural' as const },
+    { emoji: '🌿', key: 'Nature' as const },
+    { emoji: '⛰️', key: 'Mountain' as const },
+    { emoji: '🎢', key: 'Leisure' as const },
+    { emoji: '🚌', key: 'Sightseeing' as const },
 ]
 
 export function HomePage() {
@@ -61,7 +62,7 @@ export function HomePage() {
                         <Text variant="body-3" color="neutral-faded">{t('home.categoriesSubtitle')}</Text>
                     </View>
                     <View>
-                        <Grid columns={{ s: 1, m: 2, l: 4 }} gap={4} align='center'>
+                        <Grid columns={{ s: 1, m: 2, l: 3 }} gap={4} align='center'>
                             {CATEGORIES.map(c => (
                                 <Link key={c.key} to={`/excursions?type=${encodeURIComponent(c.key)}`} style={{ textDecoration: 'none' }}>
                                     <View shadow='overlay' padding={4} borderRadius="medium">
@@ -105,6 +106,6 @@ export function HomePage() {
                     </Link>
                 </Grid>
             </View>
-        </View >
+        </View>
     )
 }

@@ -5,17 +5,8 @@ import { fetchRepresentatives, fetchResorts } from '../api'
 import type { RepresentativeDto, ResortDto } from '../api'
 import { Representative } from './Representative'
 
-/** Съвпада с кодовете в админ и бекенд LANGUAGE_CODES */
-const LANGUAGE_LABELS = {
-    en: 'english',
-    ro: 'romanian',
-    ru: 'russian',
-    cs: 'czech',
-    pl: 'polish',
-    de: 'german',
-} as const
-
-const LANGUAGE_ORDER = ['en', 'ro', 'ru', 'cs', 'pl', 'de'] as const satisfies readonly (keyof typeof LANGUAGE_LABELS)[]
+/** Съвпада с RepresentativesController LANGUAGE_CODES */
+const LANGUAGE_ORDER = ['en', 'ro', 'mo', 'uk', 'ru'] as const
 
 type LoadState =
     | { status: 'loading' }
@@ -105,7 +96,7 @@ export function RepresentativesPage() {
                         >
                             <option value="all">{t('representatives.allLanguages')}</option>
                             {LANGUAGE_ORDER.map((code) => (
-                                <option key={code} value={code}>{LANGUAGE_LABELS[code]}</option>
+                                <option key={code} value={code}>{t(`representatives.lang.${code}`)}</option>
                             ))}
                         </Select>
                     </View>
