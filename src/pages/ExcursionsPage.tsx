@@ -152,7 +152,7 @@ export function ExcursionsPage() {
                     <Actionable
                         key={x.id}
                         onClick={() => navigate(`/excursions/${x.id}`)}
-                        attributes={{ style: { display: 'block', width: '100%' } }}
+                        attributes={{ style: { display: 'block', width: '100%', maxWidth: 380, marginInline: 'auto' } }}
                     >
                         <View
                             shadow="overlay"

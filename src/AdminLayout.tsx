@@ -1,6 +1,6 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext'
-import { View, Text, Button, Divider } from 'reshaped'
+import { View, Text, Button, Divider, ToastProvider, MenuItem } from 'reshaped'
 
 const NAV = [
     { to: '/admin/excursions', icon: '🗺️', label: 'Екскурзии' },
@@ -18,54 +18,55 @@ export function AdminLayout() {
     }
 
     return (
-        <View direction="row" minHeight="100svh">
-            {/* Sidebar */}
-            <View
-                as="aside"
-                attributes={{ style: { width: 240, background: '#1a1a2e', color: '#fff', flexShrink: 0, position: 'sticky', top: 0, height: '100svh', display: 'flex', flexDirection: 'column' } }}
-            >
-                <View padding={5} attributes={{ style: { borderBottom: '1px solid rgba(255,255,255,.08)' } }}>
-                    <Text variant="title-3" weight="bold" attributes={{ style: { color: '#fff' } }}>✈ TripsGuide</Text>
-                    <Text variant="caption-1" attributes={{ style: { color: 'rgba(255,255,255,.45)', textTransform: 'uppercase', letterSpacing: 1 } }}>Администрация</Text>
-                </View>
+        <ToastProvider>
+            <View direction="row" minHeight="100svh">
+                {/* Sidebar */}
+                <View
+                    as="aside"
+                    width={70}
+                    backgroundColor="primary-faded"
+                    position="sticky"
+                    height="100svh"
+                    direction="column"
+                    gap={5}
+                >
+                    <View gap={5} padding={5}>
+                        <Text variant="title-6" color="neutral-faded">TripsGuide</Text>
+                        <Text variant="body-1" color="neutral-faded">Администрация</Text>
+                    </View>
 
-                <View as="nav" padding={3} grow>
-                    {NAV.map(({ to, icon, label }) => (
-                        <NavLink
-                            key={to}
-                            to={to}
-                            style={({ isActive }) => ({
-                                display: 'flex', alignItems: 'center', gap: 10,
-                                padding: '11px 14px', borderRadius: 8, marginBottom: 4,
-                                textDecoration: 'none', fontSize: 14, fontWeight: 500,
-                                color: isActive ? '#fff' : 'rgba(255,255,255,.6)',
-                                background: isActive ? 'rgba(255,85,51,.25)' : 'transparent',
-                                borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
-                            })}
+                    <View as="nav" padding={3} grow direction="column" gap={3}>
+                        {NAV.map(({ to, icon, label }) => (
+                            <MenuItem
+                                key={to}
+                                roundedCorners
+                                size='large'
+                                onClick={() => navigate(to)}
+                                selected={location.pathname === to}
+                                startSlot={<span style={{ fontSize: 18 }}>{icon}</span>}>
+                                {label}
+                            </MenuItem>
+                        ))}
+                    </View>
+
+                    <Divider attributes={{ style: { borderColor: 'rgba(255,255,255,.08)' } }} />
+                    <View padding={3}>
+                        <Button
+                            variant="solid"
+                            onClick={handleLogout}
+                            fullWidth
+                            color="primary"
                         >
-                            <span style={{ fontSize: 18 }}>{icon}</span>
-                            {label}
-                        </NavLink>
-                    ))}
+                            🚪 Изход
+                        </Button>
+                    </View>
                 </View>
 
-                <Divider attributes={{ style: { borderColor: 'rgba(255,255,255,.08)' } }} />
-                <View padding={3}>
-                    <Button
-                        variant="ghost"
-                        onClick={handleLogout}
-                        fullWidth
-                        attributes={{ style: { color: 'rgba(255,255,255,.6)', justifyContent: 'flex-start' } }}
-                    >
-                        🚪 Изход
-                    </Button>
+                {/* Main */}
+                <View grow backgroundColor="neutral-faded" height="100svh" overflow="auto">
+                    <Outlet />
                 </View>
             </View>
-
-            {/* Main */}
-            <View grow backgroundColor="neutral-faded" overflow="auto">
-                <Outlet />
-            </View>
-        </View>
+        </ToastProvider>
     )
 }

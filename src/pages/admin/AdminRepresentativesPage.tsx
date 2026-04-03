@@ -6,7 +6,8 @@ import {
 } from '../../adminApi'
 import { ImageUploader } from '../../components/ImageUploader'
 import { resolvePhotoUrl, fetchResorts, type ResortDto } from '../../api'
-import { View, Text, Button, Alert, Loader, Avatar, TextField, TextArea, Table, Divider, Grid } from 'reshaped'
+import { View, Text, Button, Loader, Avatar, TextField, TextArea, Table, Divider, Grid, Badge, Autocomplete, Dismissible, FormControl, CheckboxGroup, Checkbox } from 'reshaped'
+import { useAdminToast, unknownErrorMessage } from '../../hooks/useAdminToast'
 
 function emptyForm() {
     return {
@@ -38,7 +39,7 @@ interface RepRow {
 
 const LANG_OPTIONS = [
     { value: 'ru', label: 'Руски' },
-    { value: 'cz', label: 'Чешки' },
+    { value: 'cs', label: 'Чешки' },
     { value: 'pl', label: 'Полски' },
     { value: 'en', label: 'Английски' },
     { value: 'ro', label: 'Румънски' },
@@ -57,14 +58,15 @@ function parseHotelsInput(s: string): string[] {
 
 export function AdminRepresentativesPage() {
     const { token } = useAuth()
+    const { toastSuccess, toastError } = useAdminToast()
     const [rows, setRows] = useState<RepRow[]>([])
     const [loading, setLoading] = useState(true)
     const [form, setForm] = useState(emptyForm)
     const [editId, setEditId] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
-    const [error, setError] = useState('')
     const [showForm, setShowForm] = useState(false)
     const [resortOptions, setResortOptions] = useState<ResortDto[]>([])
+    const [resortQuery, setResortQuery] = useState('')
 
     useEffect(() => {
         fetchResorts().then(setResortOptions).catch(() => { setResortOptions([]) })
@@ -75,16 +77,16 @@ export function AdminRepresentativesPage() {
         setLoading(true)
         adminListRepresentatives(token)
             .then(d => setRows(d as RepRow[]))
-            .catch((e: Error) => setError(e.message))
+            .catch((e: unknown) => toastError(unknownErrorMessage(e), 'Неуспешно зареждане'))
             .finally(() => setLoading(false))
-    }, [token])
+    }, [token, toastError])
 
 
 
     useEffect(() => { load() }, [load])
 
-    /** Всички опции за селекта: GET /resorts + курортите от редактирания ред (ако липсват в списъка или id са string от JSON). */
-    const resortChoicesForSelect = useMemo(() => {
+    /** GET /resorts + курортите от редактирания ред (ако липсват в списъка). */
+    const resortChoices = useMemo(() => {
         const map = new Map<number, ResortDto>()
         for (const o of resortOptions) {
             map.set(Number(o.id), { id: Number(o.id), name: o.name })
@@ -104,7 +106,22 @@ export function AdminRepresentativesPage() {
         )
     }, [resortOptions, showForm, editId, rows])
 
+    const resortAutocompleteItems = useMemo(() => {
+        const q = resortQuery.trim().toLowerCase()
+        return resortChoices.filter((o) => {
+            if (form.resortIds.includes(o.id)) return false
+            if (!q) return true
+            return o.name.toLowerCase().includes(q)
+        })
+    }, [resortChoices, form.resortIds, resortQuery])
+
+    function closeForm() {
+        setShowForm(false)
+        setResortQuery('')
+    }
+
     function startEdit(row: RepRow) {
+        setResortQuery('')
         const hotels = row.hotels ?? []
         setForm({
             ...emptyForm(),
@@ -116,17 +133,18 @@ export function AdminRepresentativesPage() {
             languages: row.languages ?? [],
             hotelsText: hotels.length ? hotels.join('\n') : '',
         })
-        setEditId(row.id); setShowForm(true); setError('')
+        setEditId(row.id); setShowForm(true)
     }
 
     function startNew() {
-        setForm(emptyForm()); setEditId(null); setShowForm(true); setError('')
+        setResortQuery('')
+        setForm(emptyForm()); setEditId(null); setShowForm(true)
     }
 
     async function handleSave(e: React.FormEvent) {
         e.preventDefault()
         if (!token) return
-        setSaving(true); setError('')
+        setSaving(true)
         const body = {
             resortIds: form.resortIds,
             name: form.name,
@@ -137,28 +155,36 @@ export function AdminRepresentativesPage() {
             languages: form.languages || []
         }
         try {
-            if (editId) await adminUpdateRepresentative(token, editId, body)
-            else await adminCreateRepresentative(token, body)
-            setShowForm(false); load()
+            if (editId) {
+                await adminUpdateRepresentative(token, editId, body)
+                toastSuccess('Промените по представителя са запазени.')
+            } else {
+                await adminCreateRepresentative(token, body)
+                toastSuccess('Представителят е добавен.')
+            }
+            closeForm(); load()
         } catch (e: unknown) {
-            setError(e instanceof Error ? e.message : 'Грешка')
+            toastError(unknownErrorMessage(e), 'Запазването не бе успешно')
         } finally { setSaving(false) }
     }
 
     async function handleDelete(id: string) {
         if (!token || !confirm('Изтриване на представителя?')) return
-        await adminDeleteRepresentative(token, id).catch((e: Error) => setError(e.message))
-        load()
+        try {
+            await adminDeleteRepresentative(token, id)
+            toastSuccess('Представителят е изтрит.')
+            load()
+        } catch (e: unknown) {
+            toastError(unknownErrorMessage(e), 'Изтриването не бе успешно')
+        }
     }
 
     return (
         <View padding={{ s: 4, m: 8 }} gap={6}>
             <View direction="row" justify="space-between" align="center">
-                <Text as="h1" variant="title-1" weight="bold">👥 Представители</Text>
+                <Text as="h1" variant="title-5" weight="bold">👥 Представители</Text>
                 <Button variant="solid" color="primary" onClick={startNew}>+ Добави представител</Button>
             </View>
-
-            {error && <Alert color="critical" title="Грешка">{error}</Alert>}
 
             {showForm && (
                 <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white" gap={5}>
@@ -168,26 +194,60 @@ export function AdminRepresentativesPage() {
                         <View gap={4}>
                             <Grid columns={{ s: 1, m: 2 }} gap={4}>
                                 <View gap={1} attributes={{ style: { gridColumn: '1 / -1' } }}>
-                                    <Text variant="caption-1" weight="bold">Курорти</Text>
-                                    <Text variant="caption-1" color="neutral-faded">Множествен избор — задръж Ctrl (Windows/Linux) или ⌘ (Mac) за няколко курорта</Text>
-                                    {resortChoicesForSelect.length === 0 ? (
+                                    <FormControl.Label>Курорти</FormControl.Label>
+                                    <FormControl.Helper>
+                                        Търси по име и избери от списъка; Backspace при празно поле маха последния курорт
+                                    </FormControl.Helper>
+                                    {resortChoices.length === 0 ? (
                                         <Text variant="body-2" color="neutral-faded">Зареждане на курорти… (ако остава празно, проверете връзката с API)</Text>
                                     ) : (
-                                        <select
-                                            key={editId ?? 'new'}
-                                            multiple
-                                            name="resortIds"
-                                            value={form.resortIds.map((id) => String(id))}
-                                            onChange={(e) => {
-                                                const selected = Array.from(e.target.selectedOptions).map((o) => Number(o.value))
-                                                setForm((p) => ({ ...p, resortIds: selected }))
-                                            }}
-                                            style={{ minHeight: 120, width: '100%' }}
-                                        >
-                                            {resortChoicesForSelect.map((opt) => (
-                                                <option key={opt.id} value={String(opt.id)}>{opt.name}</option>
-                                            ))}
-                                        </select>
+                                        <View gap={3}>
+                                            {form.resortIds.length > 0 && (
+                                                <View direction="row" gap={4} wrap align="center">
+                                                    {form.resortIds.map((id) => {
+                                                        const label = resortChoices.find((o) => o.id === id)?.name ?? `#${id}`
+                                                        return (
+                                                            <Badge key={id} variant="outline" color="primary" size="large">
+                                                                <Dismissible
+                                                                    closeAriaLabel={`Премахни курорт ${label}`}
+                                                                    onClose={() => setForm((f) => ({
+                                                                        ...f,
+                                                                        resortIds: f.resortIds.filter((x) => x !== id),
+                                                                    }))}
+                                                                >
+                                                                    <Text variant="body-2" color="primary">{label}</Text>
+                                                                </Dismissible>
+                                                            </Badge>
+                                                        )
+                                                    })}
+                                                </View>
+                                            )}
+                                            <Autocomplete
+                                                name="resortSearch"
+                                                placeholder="Добави курорт…"
+                                                value={resortQuery}
+                                                onChange={({ value }) => setResortQuery(value)}
+                                                onItemSelect={({ value }) => {
+                                                    const id = Number(value)
+                                                    if (!Number.isFinite(id)) return
+                                                    setForm((f) => ({
+                                                        ...f,
+                                                        resortIds: f.resortIds.includes(id) ? f.resortIds : [...f.resortIds, id],
+                                                    }))
+                                                    setResortQuery('')
+                                                }}
+                                                onBackspace={() => {
+                                                    if (resortQuery !== '') return
+                                                    setForm((f) => ({ ...f, resortIds: f.resortIds.slice(0, -1) }))
+                                                }}
+                                            >
+                                                {resortAutocompleteItems.map((opt) => (
+                                                    <Autocomplete.Item key={opt.id} value={String(opt.id)}>
+                                                        {opt.name}
+                                                    </Autocomplete.Item>
+                                                ))}
+                                            </Autocomplete>
+                                        </View>
                                     )}
                                 </View>
                                 <View gap={1}>
@@ -222,23 +282,22 @@ export function AdminRepresentativesPage() {
                                     <Text variant="caption-1" weight="bold">Longitude *</Text>
                                     <TextField name="lng" placeholder="27.9120" value={form.lng} onChange={({ value }) => setForm(p => ({ ...p, lng: value }))} inputAttributes={{ type: 'number', step: 'any' }} />
                                 </View>
-                                <View gap={1}>
-                                    <Text variant="caption-1" weight="bold">Езици</Text>
-                                    <select
-                                        key={`lang-${editId ?? 'new'}`}
-                                        multiple
-                                        name='languages'
+                                <View gap={1} attributes={{ style: { gridColumn: '1 / -1' } }}>
+                                    <FormControl.Label>Езици</FormControl.Label>
+                                    <FormControl.Helper>Може да избереш няколко езика</FormControl.Helper>
+                                    <CheckboxGroup
+                                        name="languages"
                                         value={form.languages}
-                                        onChange={e => {
-                                            const selected = Array.from(e.target.selectedOptions).map(o => o.value)
-                                            setForm(p => ({ ...p, languages: selected }))
-                                        }}
-                                        style={{ minHeight: 80 }}
+                                        onChange={({ value }) => setForm((p) => ({ ...p, languages: value }))}
                                     >
-                                        {LANG_OPTIONS.map(opt => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                        ))}
-                                    </select>
+                                        <View direction="row" gap={4} wrap>
+                                            {LANG_OPTIONS.map((opt) => (
+                                                <Checkbox key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </Checkbox>
+                                            ))}
+                                        </View>
+                                    </CheckboxGroup>
                                 </View>
                                 <View gap={1} attributes={{ style: { gridColumn: '1 / -1' } }}>
                                     <Text variant="caption-1" weight="bold">Хотели</Text>
@@ -258,7 +317,7 @@ export function AdminRepresentativesPage() {
                                 <Button type="submit" variant="solid" color="primary" disabled={saving}>
                                     {saving ? 'Запазване…' : 'Запази'}
                                 </Button>
-                                <Button variant="outline" color="neutral" onClick={() => setShowForm(false)}>Отказ</Button>
+                                <Button variant="outline" color="neutral" type="button" onClick={closeForm}>Отказ</Button>
                             </View>
                         </View>
                     </form>

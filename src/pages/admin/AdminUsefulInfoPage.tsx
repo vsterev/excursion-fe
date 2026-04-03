@@ -5,28 +5,28 @@ import {
     adminUpdateUsefulInfo, adminDeleteUsefulInfo,
 } from '../../adminApi'
 import { ImageUploader } from '../../components/ImageUploader'
-import { View, Text, Button, Alert, Loader, Badge, TextField, TextArea, Table, Divider, Grid } from 'reshaped'
+import { View, Text, Button, Loader, Badge, TextField, TextArea, Table, Divider, Grid } from 'reshaped'
+import { useAdminToast, unknownErrorMessage } from '../../hooks/useAdminToast'
 
-const EMPTY = { resort: '', category: '', title: '', content: '', url: '', urlLabel: '' }
+const EMPTY = { resort: '', category: '', title: '', content: '', url: '' }
 
 interface InfoRow {
     id: string
     resort: string
     category: string
     title: string
-    content: string
-    url?: string
-    urlLabel?: string
+    body: string
+    url?: string | null
 }
 
 export function AdminUsefulInfoPage() {
     const { token } = useAuth()
+    const { toastSuccess, toastError } = useAdminToast()
     const [rows, setRows] = useState<InfoRow[]>([])
     const [loading, setLoading] = useState(true)
     const [form, setForm] = useState(EMPTY)
     const [editId, setEditId] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
-    const [error, setError] = useState('')
     const [showForm, setShowForm] = useState(false)
 
     const load = useCallback(() => {
@@ -34,58 +34,67 @@ export function AdminUsefulInfoPage() {
         setLoading(true)
         adminListUsefulInfo(token)
             .then(d => setRows(d as InfoRow[]))
-            .catch((e: Error) => setError(e.message))
+            .catch((e: unknown) => toastError(unknownErrorMessage(e), 'Неуспешно зареждане'))
             .finally(() => setLoading(false))
-    }, [token])
+    }, [token, toastError])
 
     useEffect(() => { load() }, [load])
 
     function startEdit(row: InfoRow) {
         setForm({
             resort: row.resort, category: row.category,
-            title: row.title, content: row.content,
-            url: row.url ?? '', urlLabel: row.urlLabel ?? '',
+            title: row.title, content: row.body,
+            url: row.url ?? '',
         })
-        setEditId(row.id); setShowForm(true); setError('')
+        setEditId(row.id); setShowForm(true)
     }
 
     function startNew() {
-        setForm(EMPTY); setEditId(null); setShowForm(true); setError('')
+        setForm(EMPTY); setEditId(null); setShowForm(true)
     }
 
     async function handleSave(e: React.FormEvent) {
         e.preventDefault()
         if (!token) return
-        setSaving(true); setError('')
+        setSaving(true)
         const body = {
-            resort: form.resort, category: form.category,
-            title: form.title, content: form.content,
-            url: form.url || undefined,
-            urlLabel: form.urlLabel || undefined,
+            resort: form.resort,
+            category: form.category,
+            title: form.title,
+            body: form.content,
+            url: form.url.trim() ? form.url.trim() : null,
         }
         try {
-            if (editId) await adminUpdateUsefulInfo(token, editId, body)
-            else await adminCreateUsefulInfo(token, body)
+            if (editId) {
+                await adminUpdateUsefulInfo(token, editId, body)
+                toastSuccess('Записът е обновен.')
+            } else {
+                await adminCreateUsefulInfo(token, body)
+                toastSuccess('Записът е създаден.')
+            }
             setShowForm(false); load()
         } catch (e: unknown) {
-            setError(e instanceof Error ? e.message : 'Грешка')
+            toastError(unknownErrorMessage(e), 'Запазването не бе успешно')
         } finally { setSaving(false) }
     }
 
     async function handleDelete(id: string) {
         if (!token || !confirm('Изтриване на записа?')) return
-        await adminDeleteUsefulInfo(token, id).catch((e: Error) => setError(e.message))
-        load()
+        try {
+            await adminDeleteUsefulInfo(token, id)
+            toastSuccess('Записът е изтрит.')
+            load()
+        } catch (e: unknown) {
+            toastError(unknownErrorMessage(e), 'Изтриването не бе успешно')
+        }
     }
 
     return (
         <View padding={{ s: 4, m: 8 }} gap={6}>
             <View direction="row" justify="space-between" align="center">
-                <Text as="h1" variant="title-1" weight="bold">ℹ️ Полезна информация</Text>
+                <Text as="h1" variant="title-5" weight="bold">ℹ️ Полезна информация</Text>
                 <Button variant="solid" color="primary" onClick={startNew}>+ Добави запис</Button>
             </View>
-
-            {error && <Alert color="critical" title="Грешка">{error}</Alert>}
 
             {showForm && (
                 <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white" gap={5}>
@@ -121,10 +130,6 @@ export function AdminUsefulInfoPage() {
                                             onUploaded={(url: string) => setForm(prev => ({ ...prev, url }))}
                                         />
                                     </View>
-                                </View>
-                                <View gap={1}>
-                                    <Text variant="caption-1" weight="bold">Текст на линка</Text>
-                                    <TextField name="urlLabel" placeholder="Посети сайта" value={form.urlLabel} onChange={({ value }) => setForm(p => ({ ...p, urlLabel: value }))} />
                                 </View>
                             </Grid>
                             <View direction="row" gap={3}>
@@ -163,12 +168,12 @@ export function AdminUsefulInfoPage() {
                                 <Table.Cell>{r.resort}</Table.Cell>
                                 <Table.Cell>
                                     <Text color="neutral-faded" attributes={{ style: { maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' } }}>
-                                        {r.content}
+                                        {r.body}
                                     </Text>
                                 </Table.Cell>
                                 <Table.Cell>
                                     {r.url
-                                        ? <Text as="a" variant="body-2" color="primary" attributes={{ href: r.url, target: '_blank', rel: 'noreferrer' }}>{r.urlLabel || 'Линк'}</Text>
+                                        ? <Text as="a" variant="body-2" color="primary" attributes={{ href: r.url, target: '_blank', rel: 'noreferrer' }}>Линк</Text>
                                         : <Text variant="body-2" color="neutral-faded">—</Text>
                                     }
                                 </Table.Cell>

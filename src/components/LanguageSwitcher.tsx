@@ -5,8 +5,9 @@ const LANGS = [
   { code: 'bg', label: 'БГ', flag: '🇧🇬' },
   { code: 'en', label: 'EN', flag: '🇬🇧' },
   { code: 'de', label: 'DE', flag: '🇩🇪' },
-  { code: 'cz', label: 'CZ', flag: '🇨🇿' },
-  { code: 'ru', label: 'RU', flag: '🇷🇺' },
+  { code: 'cs', label: 'CS', flag: '🇨🇿' },
+  { code: 'pl', label: 'PL', flag: '🇵🇱' },
+  { code: 'ro', label: 'RO', flag: '🇷🇴' },
 
 ]
 

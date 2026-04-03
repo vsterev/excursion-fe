@@ -27,11 +27,9 @@ export function LoginPage() {
 
     return (
         <View minHeight="100svh" align="center" justify="center" backgroundColor="neutral-faded" padding={6}>
-            <View shadow="overlay" padding={10} borderRadius="large" backgroundColor="white" attributes={{ style: { width: '100%', maxWidth: 400 } }}>
+            <View shadow="overlay" padding={10} borderRadius="large" backgroundColor="elevation-raised">
                 <View align="center" gap={2} attributes={{ style: { marginBottom: 32 } }}>
-                    <Text variant="title-2">✈️</Text>
-                    <Text variant="title-2" weight="bold">TripsGuide Admin</Text>
-                    <Text variant="body-2" color="neutral-faded">Влез с администраторски акаунт</Text>
+                    <Text variant="title-5" weight="bold">TripsGuide Admin</Text>
                 </View>
 
                 <form onSubmit={handleSubmit}>

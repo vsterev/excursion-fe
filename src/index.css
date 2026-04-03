@@ -188,7 +188,31 @@ body { margin: 0; }
   flex-wrap: wrap;
 }
 
-/* ── Rich text description ──────────────────── */
+/* ── Rich text description (Quill HTML) ─────── */
+.excursion-description {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.excursion-description img,
+.excursion-description video,
+.excursion-description iframe {
+  max-width: 100%;
+  height: auto;
+}
+.excursion-description table {
+  max-width: 100%;
+  border-collapse: collapse;
+}
+.excursion-description pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 .excursion-description h2 { font-size: 1.25em; margin: 1em 0 .4em; }
 .excursion-description h3 { font-size: 1.1em; margin: .8em 0 .3em; }
 .excursion-description p { margin: 0 0 .6em; }

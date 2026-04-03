@@ -29,9 +29,6 @@ export function ExcursionDetailPage() {
         return () => { cancelled = true }
     }, [id, i18n.language])
 
-    const locale = i18n.language?.startsWith('de') ? 'de-DE'
-        : i18n.language?.startsWith('en') ? 'en-GB' : 'bg-BG'
-
     if (state.status === 'loading') {
         return <View align="center" padding={16}><Loader size="large" /></View>
     }
@@ -48,12 +45,11 @@ export function ExcursionDetailPage() {
     const x = state.data
 
     return (
-        <View maxWidth="1200px" width="100%" paddingInline={{ s: 4, m: 6 }} paddingBlock={{ s: 5, m: 8 }} attributes={{ style: { margin: '0 auto' } }}>
-            <View paddingBottom={6} justify="space-between" direction="row" align="center">
+        <View maxWidth="1200px" gap={4} width="100%" paddingInline={{ s: 4, m: 6 }} paddingBlock={{ s: 5, m: 8 }} attributes={{ style: { margin: '0 auto' } }}>
+            <View justify="space-between" direction="row" align="center">
                 <Button icon={<ArrowBigLeft />} variant="outline" color="primary" onClick={() => navigate(-1)}>
                     {t('repDetail.back')}
                 </Button>
-                <Badge color="primary">{t(`home.categories.${x.type}`, { defaultValue: x.type })}</Badge>
                 {x.departures?.length > 0 && (
                     <Text variant="body-2" color="neutral-faded">
                         📍 {t('detail.departureFrom')} {x.departures.map(d => d.name).join(', ')}
@@ -62,13 +58,9 @@ export function ExcursionDetailPage() {
             </View>
 
             {/* Header */}
-            <View gap={3} paddingBottom={5}>
-                <Text as="h1" variant={{ s: 'title-6', m: 'title-4' }} weight="bold">{x.destination}</Text>
-                {x.date && (
-                    <Text variant="body-2" color="neutral-faded">
-                        📅 {new Date(x.date).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </Text>
-                )}
+            <View direction={{ s: "column", m: "row" }} align={{ s: "start", m: "center" }} gap={4}>
+                <Badge size="large" color="primary">{t(`home.categories.${x.type}`, { defaultValue: x.type })}</Badge>
+                <Text as="h1" variant={{ s: 'title-6', m: 'title-5' }}>{x.destination}</Text>
             </View>
 
             {/* Photos */}
@@ -107,13 +99,23 @@ export function ExcursionDetailPage() {
                 </View>
             )}
 
-            {/* Description */}
-            <View shadow="raised" padding={6} borderRadius="medium" backgroundColor='elevation-raised'>
-                <Text variant={{ s: 'title-6', m: 'title-4' }} weight="bold" attributes={{ style: { marginBottom: 12 } }}>{t('detail.description')}</Text>
-                <div
+            <View
+                shadow="raised"
+                borderRadius="medium"
+                backgroundColor="elevation-raised"
+                overflow="auto"
+                width="100%"
+                attributes={{ style: { minWidth: 0 } }}
+            >
+                <Text
+                    as="div"
+                    variant="body-1"
+                    color="neutral-faded"
                     className="excursion-description"
-                    dangerouslySetInnerHTML={{ __html: x.description }}
-                    style={{ lineHeight: 1.7, color: 'var(--rs-color-foreground-neutral-faded)' }}
+                    attributes={{
+                        dangerouslySetInnerHTML: { __html: x.description },
+                        style: { minWidth: 0, width: '100%', lineHeight: 1.7 },
+                    }}
                 />
             </View>
         </View>

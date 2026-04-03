@@ -4,6 +4,9 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import bg from './bg'
 import en from './en'
 import de from './de'
+import cs from './cs'
+import pl from './pl'
+import ro from './ro'
 
 i18n
   .use(LanguageDetector)
@@ -13,10 +16,13 @@ i18n
       bg: { translation: bg },
       en: { translation: en },
       de: { translation: de },
+      cs: { translation: cs },
+      pl: { translation: pl },
+      ro: { translation: ro },
     },
     fallbackLng: 'bg',
     lng: localStorage.getItem('i18nextLng') ?? 'bg',
-    supportedLngs: ['bg', 'en', 'de'],
+    supportedLngs: ['bg', 'en', 'de', 'cs', 'pl', 'ro'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],

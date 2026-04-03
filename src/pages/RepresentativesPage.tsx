@@ -10,12 +10,12 @@ const LANGUAGE_LABELS = {
     en: 'english',
     ro: 'romanian',
     ru: 'russian',
-    cz: 'czech',
+    cs: 'czech',
     pl: 'polish',
     de: 'german',
 } as const
 
-const LANGUAGE_ORDER = ['en', 'ro', 'ru', 'cz', 'pl', 'de'] as const satisfies readonly (keyof typeof LANGUAGE_LABELS)[]
+const LANGUAGE_ORDER = ['en', 'ro', 'ru', 'cs', 'pl', 'de'] as const satisfies readonly (keyof typeof LANGUAGE_LABELS)[]
 
 type LoadState =
     | { status: 'loading' }
