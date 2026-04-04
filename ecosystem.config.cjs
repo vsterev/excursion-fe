@@ -15,10 +15,11 @@ module.exports = {
     production: {
       user: "vasil",
       host: "192.168.10.27",
-      ref: "origin/main",
+      ref: "origin/reshaped",
       path: "/home/vasil/pm2/trips/trips-frontend",
       repo: "git@github.com:vsterev/excursion-fe.git",
-      "post-deploy": `yarn \
+      "post-deploy": `source ~/.nvm/nvm.sh \
+        && yarn install \
         && yarn build --outDir /home/vasil/pm2-static/trips_frontend_1 --mode production --emptyOutDir\
         && pm2 startOrReload ecosystem.config.cjs --only trips-frontend`,
     },
