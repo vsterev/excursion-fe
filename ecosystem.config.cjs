@@ -4,7 +4,7 @@ module.exports = {
       name: "trips-frontend",
       script: "serve",
       env: {
-        PM2_SERVE_PATH: "/home/vasil/pm2-static/trips-frontend_1",
+        PM2_SERVE_PATH: "/home/vasil/pm2-static/trips_frontend_1",
         PM2_SERVE_PORT: 5173,
         PM2_SERVE_SPA: "true",
         PM2_SERVE_HOMEPAGE: "/index.html",
