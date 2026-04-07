@@ -30,10 +30,10 @@ export function AppLayout() {
                     align="center"
                     justify="space-between"
                     paddingBlock={{ s: 3, m: 2 }} paddingInline={{ s: 4, m: 2 }}
-                    attributes={{ style: { maxWidth: 1200, margin: '0 auto', height: 74 } }}
+                // attributes={{ style: { maxWidth: 1200, margin: '0 auto', height: 74 } }}
                 >
                     <NavLink to="/" style={{ textDecoration: 'none' }}>
-                        <Text variant="featured-2" weight="bold" color="primary">{t('nav.logo')}</Text>
+                        <Text variant={{ s: 'body-1', m: 'title-6' }} weight="bold" color="primary">{t('nav.logo')}</Text>
                     </NavLink>
 
                     {/* Desktop links */}
@@ -56,7 +56,7 @@ export function AppLayout() {
 
                     {/* Mobile */}
                     <Hidden hide={{ s: false, l: true }}>
-                        <View direction="row" align="center" justify='space-between' grow paddingStart={10}>
+                        <View direction="row" align="center" justify='space-between' grow paddingStart={{ s: 5, m: 10 }}>
                             <LanguageSwitcher />
                             <View direction="row" align="center" gap={1}>
                                 <Button

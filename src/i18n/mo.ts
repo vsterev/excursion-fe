@@ -64,8 +64,8 @@ const mo = {
     allLanguages: 'Toate limbile',
     lang: {
       en: 'Engleza',
-      ro: 'Româna (România)',
-      mo: 'Româna (Moldova)',
+      ro: 'Româna',
+      mo: 'Moldovenească',
       uk: 'Ucraineana',
       ru: 'Rusa',
     },
