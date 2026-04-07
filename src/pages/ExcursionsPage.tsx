@@ -65,23 +65,22 @@ export function ExcursionsPage() {
     }
 
     return (
-        <View maxWidth="1200px" width="100%" gap={5} paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
-            <View gap={1}>
+        <View maxWidth={{ s: '350px', m: '700px', l: '1200px' }}
+            width="100%"
+            gap={5}
+            paddingBlock={{ s: 5, m: 8 }}
+            paddingInline={{ s: 4, m: 6 }}
+            attributes={{ style: { margin: '0 auto' } }}
+        >
+            <View gap={2}>
                 <Text as="h1" variant={{ s: 'title-6', m: 'title-4' }} weight="bold">{t('excursions.title')}</Text>
                 <Text variant={{ s: 'body-2', m: 'body-1' }} color="neutral-faded">{t('excursions.subtitle')}</Text>
             </View>
 
             {/* Type chips */}
             {types.length > 0 && (
-                <View direction="row" gap={2} wrap>
-                    <Button
-                        variant={typeFilter === 'all' ? 'solid' : 'outline'}
-                        color={typeFilter === 'all' ? 'primary' : 'neutral'}
-                        size="small"
-                        onClick={() => setTypeFilter('all')}
-                    >
-                        {t('excursions.allTypes')}
-                    </Button>
+                <View direction="row" gap={2} wrap maxWidth={{ s: '350px', m: '700px', l: '1200px' }}>
+
                     {types.map((typeKey: string) => (
                         <Button
                             key={typeKey}
@@ -148,25 +147,26 @@ export function ExcursionsPage() {
             )}
 
             {/* Cards grid */}
-            <Grid columns={{ s: 1, m: 2, l: 3 }} gap={6} justify='center'>
+            <Grid columns={{ s: 1, m: 2, l: 3 }} gap={{ s: 4, m: 6 }} justify='center'>
                 {filtered.map((x: ExcursionDto) => (
                     <Actionable
                         key={x.id}
                         onClick={() => navigate(`/excursions/${x.id}`)}
-                        attributes={{ style: { display: 'block', width: '100%', maxWidth: 380, marginInline: 'auto' } }}
+                        attributes={{ style: { display: 'block', width: '100%', maxWidth: 350, marginInline: 'auto' } }}
                     >
                         <View
                             shadow="overlay"
                             borderRadius="medium"
                             backgroundColor="elevation-raised"
                             overflow="hidden"
-                            attributes={{ style: { height: 360 } }}
+                            maxWidth={{ s: '350px', m: '700px', l: '1200px' }}
+                        // attributes={{ style: { height: 360 } }}
                         >
                             {x.coverPhoto ? (
                                 <img
                                     src={x.coverPhoto}
                                     alt={x.destination}
-                                    style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block', flexShrink: 0 }}
+                                // style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block', flexShrink: 0 }}
                                 />
                             ) : (
                                 <View

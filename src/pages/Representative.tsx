@@ -106,7 +106,7 @@ export function RepresentativeCompact({ rep }: { rep: RepresentativeDto }) {
                 backgroundColor="elevation-raised"
                 gap={3}
             >
-                <View direction="row" gap={3} align="center">
+                <View direction="row" gap={3} align="center" justify="space-between">
                     <Avatar
                         src={resolvePhotoUrl(rep.photoUrl) ?? undefined}
                         initials={rep.name.charAt(0)}
@@ -121,17 +121,17 @@ export function RepresentativeCompact({ rep }: { rep: RepresentativeDto }) {
                                 <Text variant="body-1" color="neutral-faded">📞 {rep.phone}</Text>
                             )}
                         </View>
-                        <View direction="column" gap={2}>
-                            {rep.languages?.length ? (
-                                <View direction="row" gap={3}>
-                                    {rep.languages.map((l) => (
-                                        <Badge key={l} variant={badgeVariant} size="large" color="primary">
-                                            {l}
-                                        </Badge>
-                                    ))}
-                                </View>
-                            ) : null}
-                            <Hidden hide={{ s: true, m: false }}>
+                        <Hidden hide={{ s: true, m: false }}>
+                            <View direction="column" gap={2}>
+                                {rep.languages?.length ? (
+                                    <View direction="row" gap={3}>
+                                        {rep.languages.map((l) => (
+                                            <Badge key={l} variant={badgeVariant} size="large" color="primary">
+                                                {l}
+                                            </Badge>
+                                        ))}
+                                    </View>
+                                ) : null}
                                 <View direction="row" gap={2}>
                                     {rep.resorts.map((r) => (
                                         <Badge key={r.id} variant={badgeVariant} color="primary" size="large">
@@ -139,18 +139,31 @@ export function RepresentativeCompact({ rep }: { rep: RepresentativeDto }) {
                                         </Badge>
                                     ))}
                                 </View>
-                            </Hidden>
-                        </View>
+                            </View>
+                        </Hidden>
                     </View>
 
                 </View>
                 <Hidden hide={{ s: false, m: true }}>
-                    <View direction="row" gap={2} justify="end">
-                        {rep.resorts.map((r) => (
-                            <Badge key={r.id} variant={badgeVariant} size="large" color="primary">
-                                {r.name}
-                            </Badge>
-                        ))}
+                    <View direction="column" gap={2}>
+                        {rep.languages?.length ? (
+                            <View direction="row" gap={3}>
+                                <Text variant="body-2" color="neutral-faded">🌐</Text>
+                                {rep.languages.map((l) => (
+                                    <Badge key={l} variant={badgeVariant} size="large" color="primary">
+                                        {l}
+                                    </Badge>
+                                ))}
+                            </View>
+                        ) : null}
+                        {rep.resorts?.length ? <View direction="row" gap={2} justify="start">
+                            <Text variant="body-2" color="neutral-faded">🏘️</Text>
+                            {rep.resorts.map((r) => (
+                                <Badge key={r.id} variant={badgeVariant} size="large" color="primary">
+                                    {r.name}
+                                </Badge>
+                            ))}
+                        </View> : null}
                     </View>
                 </Hidden>
             </View>
