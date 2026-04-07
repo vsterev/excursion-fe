@@ -13,7 +13,7 @@ export function LanguageSwitcher() {
   const current = i18n.language?.slice(0, 2) ?? 'en'
 
   return (
-    <View gap={4} direction='row' >
+    <View gap={{ s: 2, m: 4 }} direction='row' >
       <Hidden hide={{ s: false, m: true }}>
         <Select
           name="language"

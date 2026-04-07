@@ -19,8 +19,9 @@ export function Representative({ rep }: { rep: RepresentativeDto }) {
                 padding={{ s: 4, m: 5 }}
                 borderRadius="medium"
                 backgroundColor="elevation-raised"
+                gap={2}
             >
-                <View direction={{ s: 'row', m: 'row' }} gap={{ s: 4, m: 8 }} align="center" justify="space-between">
+                <View direction="row" gap={{ s: 4, m: 8 }} align="center" justify="space-between">
                     <Avatar
                         src={resolvePhotoUrl(rep.photoUrl) ?? undefined}
                         initials={rep.name.charAt(0)}
@@ -33,22 +34,25 @@ export function Representative({ rep }: { rep: RepresentativeDto }) {
                             {rep.email && <Text variant="body-2" color="neutral-faded">✉️ {rep.email}</Text>}
                         </View>
                         <View direction="column" gap={3} align="start" grow>
-                            <View gap={3}>
-                                {rep.languages?.length ? (
-                                    <View gap={1} direction="row" align="center">
-                                        <Text variant="body-2" color="neutral-faded">🌐</Text>
-                                        {rep.languages.map((l) => <Badge key={l} variant={badgeVariant} color={badgeColor}>{l}</Badge>)}
-                                    </View>
-                                ) : null}
-                            </View>
-                            <View gap={3}>
-                                {rep.resorts?.length ? (
-                                    <View gap={1} direction="row" align="center">
-                                        <Text variant="body-2" color="neutral-faded">🏘️</Text>
-                                        {rep.resorts.map((resort) => <Badge key={resort.id} variant={badgeVariant} color={badgeColor}>{resort.name}</Badge>)}
-                                    </View>
-                                ) : null}
-                            </View>
+
+                            <Hidden hide={{ s: true, m: false }}>
+                                <View gap={3}>
+                                    {rep.languages?.length ? (
+                                        <View gap={1} direction="row" align="center">
+                                            <Text variant="body-2" color="neutral-faded">🌐</Text>
+                                            {rep.languages.map((l) => <Badge key={l} variant={badgeVariant} color={badgeColor}>{l}</Badge>)}
+                                        </View>
+                                    ) : null}
+                                </View>
+                                <View gap={3}>
+                                    {rep.resorts?.length ? (
+                                        <View gap={1} direction="row" align="center">
+                                            <Text variant="body-2" color="neutral-faded">🏘️</Text>
+                                            {rep.resorts.map((resort) => <Badge key={resort.id} variant={badgeVariant} color={badgeColor}>{resort.name}</Badge>)}
+                                        </View>
+                                    ) : null}
+                                </View>
+                            </Hidden>
                         </View>
                         {/* Desktop: outline button on the right */}
                         <Hidden hide={{ s: true, m: false }}>
@@ -63,8 +67,24 @@ export function Representative({ rep }: { rep: RepresentativeDto }) {
                         </Hidden>
                     </View>
                 </View>
+                <Hidden hide={{ s: false, m: true }}>
+                    <View gap={3}>
+                        {rep.languages?.length ? (
+                            <View gap={1} direction="row" align="center">
+                                <Text variant="body-2" color="neutral-faded">🌐</Text>
+                                {rep.languages.map((l) => <Badge key={l} variant={badgeVariant} color={badgeColor}>{l}</Badge>)}
+                            </View>
+                        ) : null}
+                        {rep.resorts?.length ? (
+                            <View gap={1} direction="row" align="center">
+                                <Text variant="body-2" color="neutral-faded">🏘️</Text>
+                                {rep.resorts.map((resort) => <Badge key={resort.id} variant={badgeVariant} color={badgeColor}>{resort.name}</Badge>)}
+                            </View>
+                        ) : null}
+                    </View>
+                </Hidden>
             </View>
-        </Actionable>
+        </Actionable >
     )
 }
 

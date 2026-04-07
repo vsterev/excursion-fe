@@ -59,7 +59,7 @@ export function RepresentativesPage() {
 
     return (
         <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
-            <View gap={1} paddingBottom={8}>
+            <View gap={1} paddingBottom={{ s: 2, m: 8 }}>
                 <Text as="h1" variant={{ s: 'title-6', m: 'title-4' }} weight="bold">{t('representatives.title')}</Text>
                 <Text variant={{ s: 'body-2', m: 'body-1' }} color="neutral-faded">{t('representatives.subtitle')}</Text>
             </View>
@@ -67,7 +67,7 @@ export function RepresentativesPage() {
             {/* Filters */}
             <View shadow='raised' padding={5} borderRadius="medium" backgroundColor="elevation-raised" paddingBottom={6}>
                 <View direction={{ s: 'column', m: 'row' }} gap={3} >
-                    <View grow>
+                    <View grow={{ s: false, m: true }}>
                         <TextField
                             name="search"
                             placeholder={t('representatives.search')}
@@ -76,7 +76,7 @@ export function RepresentativesPage() {
                             prefix="🔍"
                         />
                     </View>
-                    <View width={{ s: '100%', m: '200px' }}>
+                    <View width={{ s: '80%', m: '200px' }}>
                         <Select
                             name="resort"
                             value={resortFilter}
@@ -88,7 +88,7 @@ export function RepresentativesPage() {
                             ))}
                         </Select>
                     </View>
-                    <View width={{ s: '100%', m: '200px' }}>
+                    <View width={{ s: '80%', m: '200px' }}>
                         <Select
                             name="language"
                             value={languageFilter}
