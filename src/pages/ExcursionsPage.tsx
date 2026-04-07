@@ -65,7 +65,7 @@ export function ExcursionsPage() {
     }
 
     return (
-        <View maxWidth={{ s: '350px', m: '700px', l: '1200px' }}
+        <View maxWidth={{ s: '300px', m: '700px', l: '1200px' }}
             width="100%"
             gap={5}
             paddingBlock={{ s: 5, m: 8 }}
@@ -79,7 +79,7 @@ export function ExcursionsPage() {
 
             {/* Type chips */}
             {types.length > 0 && (
-                <View direction="row" gap={2} wrap maxWidth={{ s: '350px', m: '700px', l: '1200px' }}>
+                <View direction="row" gap={2} wrap maxWidth={{ s: '300px', m: '700px', l: '1200px' }}>
 
                     {types.map((typeKey: string) => (
                         <Button
@@ -159,7 +159,7 @@ export function ExcursionsPage() {
                             borderRadius="medium"
                             backgroundColor="elevation-raised"
                             overflow="hidden"
-                            maxWidth={{ s: '350px', m: '700px', l: '1200px' }}
+                            maxWidth={{ s: '300px', m: '700px', l: '1200px' }}
                         // attributes={{ style: { height: 360 } }}
                         >
                             {x.coverPhoto ? (
