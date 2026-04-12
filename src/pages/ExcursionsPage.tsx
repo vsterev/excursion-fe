@@ -82,25 +82,25 @@ export function ExcursionsPage() {
         setItems([])
         setHasMore(true)
 
-        ;(async () => {
-            try {
-                const limit = computeExcursionBatchLimit(window.innerHeight, window.innerWidth)
-                batchLimitRef.current = limit
-                const res = await fetchExcursions({
-                    limit,
-                    offset: 0,
-                    resortId: fetchParams.resortId,
-                    q: fetchParams.q,
-                })
-                if (cancelled) return
-                setItems(res.items)
-                setHasMore(res.hasMore)
-            } catch (e: unknown) {
-                if (!cancelled) setError(e instanceof Error ? e.message : 'Error')
-            } finally {
-                if (!cancelled) setLoading(false)
-            }
-        })()
+            ; (async () => {
+                try {
+                    const limit = computeExcursionBatchLimit(window.innerHeight, window.innerWidth)
+                    batchLimitRef.current = limit
+                    const res = await fetchExcursions({
+                        limit,
+                        offset: 0,
+                        resortId: fetchParams.resortId,
+                        q: fetchParams.q,
+                    })
+                    if (cancelled) return
+                    setItems(res.items)
+                    setHasMore(res.hasMore)
+                } catch (e: unknown) {
+                    if (!cancelled) setError(e instanceof Error ? e.message : 'Error')
+                } finally {
+                    if (!cancelled) setLoading(false)
+                }
+            })()
 
         return () => {
             cancelled = true
@@ -214,19 +214,20 @@ export function ExcursionsPage() {
                             <Actionable
                                 key={x.id}
                                 onClick={() => navigate(`/excursions/${x.id}`)}
-                                attributes={{ style: { display: 'block', width: '100%', maxWidth: 350, marginInline: 'auto' } }}
+                            // attributes={{ style: { display: 'block', width: '100%', maxWidth: 350, marginInline: 'auto' } }}
                             >
                                 <View
                                     shadow="overlay"
                                     borderRadius="medium"
                                     backgroundColor="elevation-raised"
                                     overflow="hidden"
-                                    maxWidth={{ s: '300px', m: '700px', l: '1200px' }}
+                                    maxWidth="350px"
                                 >
                                     {x.coverPhoto ? (
                                         <img
                                             src={resolvePhotoUrl(x.coverPhoto) ?? ''}
                                             alt={x.destination}
+                                            style={{ width: '100%', maxHeight: '230px', objectFit: 'cover' }}
                                         />
                                     ) : (
                                         <View
