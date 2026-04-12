@@ -31,19 +31,20 @@ export function AppLayout() {
                     align="center"
                     justify="space-between"
                     paddingBlock={{ s: 3, m: 2 }} paddingInline={{ s: 4, m: 2 }}
-                // attributes={{ style: { maxWidth: 1200, margin: '0 auto', height: 74 } }}
                 >
-                    <NavLink
-                        to="/"
-                        style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
-                        aria-label={t('nav.logoAlt')}
-                    >
-                        <img
-                            src={SOLVEX_LOGO_SRC}
-                            alt=""
-                            style={{ display: 'block', height: 40, width: 'auto', maxWidth: 200 }}
-                        />
-                    </NavLink>
+                    <Hidden hide={{ s: true, m: false }}>
+                        <NavLink
+                            to="/"
+                            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+                            aria-label={t('nav.logoAlt')}
+                        >
+                            <img
+                                src={SOLVEX_LOGO_SRC}
+                                alt=""
+                                style={{ display: 'block', height: 40, width: 'auto', maxWidth: 200 }}
+                            />
+                        </NavLink>
+                    </Hidden>
 
                     {/* Desktop links */}
                     <Hidden hide={{ s: true, l: false }}>
