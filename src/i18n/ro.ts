@@ -8,6 +8,7 @@ const ro = {
     aboutUs: 'Despre noi',
     openMenu: 'Deschide meniul',
     closeMenu: 'Închide meniul',
+    chooseLanguage: 'Schimbă limba',
   },
   seo: {
     homeTitle: 'Excursii și reprezentanți — Marea Neagră bulgară (Solvex)',

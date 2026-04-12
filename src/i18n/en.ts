@@ -8,6 +8,7 @@ const en = {
     aboutUs: 'About Us',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
+    chooseLanguage: 'Change language',
   },
   seo: {
     homeTitle: 'Excursions & representatives — Bulgarian Black Sea (Solvex)',

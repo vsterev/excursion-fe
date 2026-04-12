@@ -9,6 +9,7 @@ const ru = {
     aboutUs: 'О нас',
     openMenu: 'Открыть меню',
     closeMenu: 'Закрыть меню',
+    chooseLanguage: 'Сменить язык',
   },
   seo: {
     homeTitle: 'Экскурсии и представители — болгарское побережье Чёрного моря (Solvex)',
