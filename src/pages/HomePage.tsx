@@ -40,8 +40,6 @@ export function HomePage() {
                     height="100%"
                     justify="end"
                     direction='row'
-                // paddingInline={{ s: 5, m: 10 }}
-                // paddingBottom={{ s: 6, m: 10 }}
                 >
                     <Hidden hide={{ s: true, l: false }}>
                         <View
@@ -68,16 +66,12 @@ export function HomePage() {
                                     marginBottom: 16,
                                 }}
                             />
-                            <Text variant="caption-1" weight="bold" attributes={{ style: { display: 'inline-block', background: 'var(--primary)', color: '#fff', fontSize: 11, letterSpacing: '.8px', textTransform: 'uppercase', padding: '4px 12px', borderRadius: 100, marginBottom: 12, width: 'fit-content' } }}>
-                                {t('home.badge')}
-                            </Text>
                             <Text as="h1" variant="featured-1" weight="bold" attributes={{ style: { color: '#fff', marginBottom: 8, letterSpacing: -0.5, lineHeight: 1.15 } }}>
                                 {t('home.title').split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}
                             </Text>
                             <Text variant="body-2" attributes={{ style: { color: 'rgba(255,255,255,.85)', marginBottom: 20, maxWidth: 480 } }}>
                                 {t('home.subtitle')}
                             </Text>
-                            <Link to="/excursions" className="hero-cta">{t('home.cta')}</Link>
                         </View>
                     </Hidden>
 
