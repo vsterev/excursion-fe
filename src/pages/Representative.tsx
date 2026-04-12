@@ -156,14 +156,6 @@ export function RepresentativeCompact({ rep }: { rep: RepresentativeDto }) {
                                 ))}
                             </View>
                         ) : null}
-                        {rep.resorts?.length ? <View direction="row" gap={2} justify="start">
-                            <Text variant="body-2" color="neutral-faded">🏘️</Text>
-                            {rep.resorts.map((r) => (
-                                <Badge key={r.id} variant={badgeVariant} size="large" color="primary">
-                                    {r.name}
-                                </Badge>
-                            ))}
-                        </View> : null}
                     </View>
                 </Hidden>
             </View>

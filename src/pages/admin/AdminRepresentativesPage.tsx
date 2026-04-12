@@ -42,7 +42,6 @@ interface RepRow {
 const LANG_OPTIONS = [
     { value: 'en', label: 'English' },
     { value: 'ro', label: 'Română' },
-    { value: 'mo', label: 'Moldovenească' },
     { value: 'uk', label: 'Українська' },
     { value: 'ru', label: 'Русский' },
 ]

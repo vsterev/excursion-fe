@@ -9,9 +9,6 @@ export type ExcursionPhotoDto = {
 
 export type ExcursionDto = {
     id: string
-    /** Каноничен тип (английски), за филтри и URL */
-    typeKey: string
-    type: string
     destination: string
     description: string
     date: string | null
@@ -22,6 +19,11 @@ export type ExcursionDto = {
 
 export type ExcursionDetailDto = ExcursionDto & {
     photos: ExcursionPhotoDto[]
+}
+
+export type ExcursionsListResponse = {
+    items: ExcursionDto[]
+    hasMore: boolean
 }
 
 export type ResortDto = {
@@ -77,15 +79,21 @@ async function apiFetch<T>(path: string): Promise<T> {
 }
 
 export const fetchExcursions = (params?: {
-    type?: string; from?: string; destination?: string
+    from?: string
+    destination?: string
+    resortId?: number
     q?: string
-}): Promise<ExcursionDto[]> => {
+    limit?: number
+    offset?: number
+}): Promise<ExcursionsListResponse> => {
     const qs = new URLSearchParams({ lang: lang() })
-    if (params?.type) qs.set('type', params.type)
     if (params?.from) qs.set('from', params.from)
     if (params?.destination) qs.set('destination', params.destination)
-    if (params?.q) qs.set('q', params.q)
-    return apiFetch<ExcursionDto[]>(`/excursions?${qs}`)
+    if (params?.resortId != null) qs.set('resortId', String(params.resortId))
+    if (params?.q?.trim()) qs.set('q', params.q.trim())
+    if (params?.limit != null) qs.set('limit', String(params.limit))
+    if (params?.offset != null) qs.set('offset', String(params.offset))
+    return apiFetch<ExcursionsListResponse>(`/excursions?${qs}`)
 }
 
 export const fetchExcursion = (id: string): Promise<ExcursionDetailDto> =>

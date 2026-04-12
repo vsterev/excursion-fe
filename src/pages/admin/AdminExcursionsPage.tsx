@@ -6,7 +6,7 @@ import {
 } from '../../adminApi'
 import { fetchResorts, type ResortDto } from '../../api'
 import { ImageUploader } from '../../components/ImageUploader'
-import { View, Text, Button, Loader, Badge, TextField, TextArea, Table, Divider, Grid, RadioGroup, Radio, FormControl, Autocomplete, Dismissible } from 'reshaped'
+import { View, Text, Button, Loader, Badge, TextField, TextArea, Table, Divider, Grid, FormControl, Autocomplete, Dismissible } from 'reshaped'
 import { useAdminToast, unknownErrorMessage } from '../../hooks/useAdminToast'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
@@ -21,13 +21,8 @@ const QUILL_MODULES = {
     ],
 }
 
-/** Канонични типове на английски — съвпадат с колоната type в БД и преводите. */
-const TYPES = ['Cultural', 'Mountain', 'Leisure', 'Nature', 'Sightseeing'] as const
-
-
 function emptyForm() {
     return {
-        type: TYPES[2] as string,
         resortIds: [] as number[],
         destination: '',
         description: '',
@@ -38,7 +33,6 @@ function emptyForm() {
 
 interface ExcursionRow {
     id: string
-    type: string
     destination: string
     description: string
     price: number | null
@@ -105,7 +99,6 @@ export function AdminExcursionsPage() {
         setResortQuery('')
         setForm({
             ...emptyForm(),
-            type: row.type,
             resortIds: (row.departures ?? []).map((s) => Number(s.id)).filter(Number.isFinite),
             destination: row.destination,
             description: row.description,
@@ -120,18 +113,20 @@ export function AdminExcursionsPage() {
         setForm(emptyForm()); setEditId(null); setShowForm(true)
     }
 
-    async function handleSave(e: React.FormEvent) {
-        e.preventDefault()
+    async function handleSave() {
         if (!token) return
         setSaving(true)
         const photoUrls = form.photos.split('\n').map(s => s.trim()).filter(Boolean)
-        const parsedPrice = form.price.trim() !== '' ? parseFloat(form.price) : null
+        const rawPrice = form.price.trim()
+        const parsed = rawPrice === '' ? null : parseFloat(rawPrice.replace(',', '.'))
+        const price =
+            parsed != null && !Number.isNaN(parsed) && Number.isFinite(parsed) ? parsed : null
+
         const body = {
-            type: form.type,
             resortIds: form.resortIds,
             destination: form.destination,
             description: form.description,
-            price: parsedPrice != null && !isNaN(parsedPrice) ? parsedPrice : null,
+            price,
             photos: photoUrls.map((url, i) => ({ url, order: i })),
         }
         try {
@@ -171,32 +166,27 @@ export function AdminExcursionsPage() {
                 <View gap={5}>
                     <Text variant="title-5">{editId ? 'Редактиране на екскурзия' : 'Нова екскурзия'}</Text>
                     <Divider />
-                    <form onSubmit={handleSave}>
+                    <form
+                        noValidate
+                        onSubmit={(e) => {
+                            e.preventDefault()
+                        }}
+                    >
                         <View gap={4}>
-                            <Grid columns={{ s: 1, m: 3 }} gap={4}>
-                                <View gap={1}>
-                                    <FormControl.Label>Type (English)</FormControl.Label>
-                                    <View gap={3} direction="row" align="center" wrap>
-                                        <RadioGroup
-                                            name="type"
-                                            value={form.type}
-                                            onChange={({ value }) => setForm((f) => ({ ...f, type: value }))}
-                                        >
-                                            {TYPES.map((t) => (
-                                                <Radio key={t} value={t}>
-                                                    {t}
-                                                </Radio>
-                                            ))}
-                                        </RadioGroup>
-                                    </View>
-                                </View>
+                            <Grid columns={{ s: 1, m: 2 }} gap={4}>
                                 <View gap={1}>
                                     <FormControl.Label>Title / destination (English) *</FormControl.Label>
                                     <TextField name="destination" placeholder="Nessebar" value={form.destination} onChange={({ value }) => setForm(f => ({ ...f, destination: value }))} />
                                 </View>
                                 <View gap={1}>
-                                    <FormControl.Label>Цена €</FormControl.Label>
-                                    <TextField name="price" placeholder="49.99" value={form.price} onChange={({ value }) => setForm(f => ({ ...f, price: value }))} />
+                                    <FormControl.Label>Цена € (незадължително)</FormControl.Label>
+                                    <TextField
+                                        name="price"
+                                        placeholder="49.99"
+                                        value={form.price}
+                                        onChange={({ value }) => setForm((f) => ({ ...f, price: value }))}
+                                        inputAttributes={{ type: 'text', inputMode: 'decimal', autoComplete: 'off' }}
+                                    />
                                 </View>
                                 <View gap={1} attributes={{ style: { gridColumn: '1 / -1' } }}>
                                     <FormControl.Label>Тръгване от (курорти)</FormControl.Label>
@@ -279,6 +269,8 @@ export function AdminExcursionsPage() {
                                         token={token!}
                                         category="excursions"
                                         label="Качи снимка от диск"
+                                        enabled={form.destination.trim().length > 0}
+                                        disabledHint="Първо въведете destination (заглавие на екскурзията), после качете снимка."
                                         onUploaded={(url: string) => setForm(f => ({
                                             ...f,
                                             photos: f.photos ? f.photos + '\n' + url : url,
@@ -287,7 +279,13 @@ export function AdminExcursionsPage() {
                                 </View>
                             </View>
                             <View direction="row" gap={3}>
-                                <Button type="submit" variant="solid" color="primary" disabled={saving}>
+                                <Button
+                                    type="button"
+                                    variant="solid"
+                                    color="primary"
+                                    disabled={saving}
+                                    onClick={() => void handleSave()}
+                                >
                                     {saving ? 'Запазване…' : 'Запази'}
                                 </Button>
                                 <Button variant="outline" color="neutral" type="button" onClick={closeForm}>Отказ</Button>
@@ -311,7 +309,6 @@ export function AdminExcursionsPage() {
                         <Table>
                             <Table.Row>
                                 <Table.Heading>Name</Table.Heading>
-                                <Table.Heading>Type</Table.Heading>
                                 <Table.Heading>Departure</Table.Heading>
                                 <Table.Heading>Price</Table.Heading>
                                 <Table.Heading>Photos</Table.Heading>
@@ -320,7 +317,6 @@ export function AdminExcursionsPage() {
                             {rows.map(r => (
                                 <Table.Row key={r.id}>
                                     <Table.Cell><Text weight="bold">{r.destination}</Text></Table.Cell>
-                                    <Table.Cell><Badge color="primary">{r.type}</Badge></Table.Cell>
                                     <Table.Cell>
                                         <View direction="row" gap={1} wrap>
                                             {r.departures?.length

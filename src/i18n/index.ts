@@ -3,8 +3,17 @@ import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import en from './en'
 import ro from './ro'
-import mo from './mo'
+import ru from './ru'
 import uk from './uk'
+
+try {
+  const stored = localStorage.getItem('i18nextLng')
+  if (stored === 'mo' || stored?.startsWith('mo-')) {
+    localStorage.setItem('i18nextLng', 'ru')
+  }
+} catch {
+  /* ignore */
+}
 
 i18n
   .use(LanguageDetector)
@@ -13,12 +22,11 @@ i18n
     resources: {
       en: { translation: en },
       ro: { translation: ro },
-      mo: { translation: mo },
+      ru: { translation: ru },
       uk: { translation: uk },
     },
     fallbackLng: 'en',
-    lng: localStorage.getItem('i18nextLng') ?? 'en',
-    supportedLngs: ['en', 'ro', 'mo', 'uk'],
+    supportedLngs: ['en', 'ro', 'uk', 'ru'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],

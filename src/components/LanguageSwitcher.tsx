@@ -4,8 +4,8 @@ import { Button, Select, Hidden, Tooltip, View } from 'reshaped'
 const LANGS = [
   { code: 'en', label: 'EN', flag: '🇬🇧' },
   { code: 'ro', label: 'RO', flag: '🇷🇴' },
-  { code: 'mo', label: 'MO', flag: '🇲🇩' },
   { code: 'uk', label: 'UK', flag: '🇺🇦' },
+  { code: 'ru', label: 'RU', flag: '🇷🇺' },
 ]
 
 export function LanguageSwitcher() {

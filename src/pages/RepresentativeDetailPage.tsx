@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { View, Text, Avatar, Button, Loader, Hidden, Badge, Grid, useTheme } from 'reshaped'
@@ -47,9 +48,21 @@ export function RepresentativeDetailPage() {
     const r = state.data
     const hotelsList = r.hotels ?? []
     const mapsUrl = `https://www.google.com/maps?q=${r.lat},${r.lng}`
+    const pageTitle = `${r.name} — ${t('nav.representatives')}`
+    const metaDesc = [r.name, r.resorts?.map((x) => x.name).join(', '), hotelsList.slice(0, 4).join(', ')]
+        .filter(Boolean)
+        .join(' · ')
+        .slice(0, 158)
 
     return (
-        <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
+        <>
+            <Helmet>
+                <title>{pageTitle}</title>
+                <meta name="description" content={metaDesc} />
+                <meta property="og:title" content={pageTitle} />
+                <meta property="og:description" content={metaDesc} />
+            </Helmet>
+            <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
             <View paddingBottom={6}>
                 <Button icon={<ArrowBigLeft />} variant={badgeVariant} color="primary" onClick={() => navigate(-1)}>
                     {t('repDetail.back')}
@@ -131,5 +144,6 @@ export function RepresentativeDetailPage() {
                 <RepresentativeContact rep={r} mapsUrl={mapsUrl} />
             </View>
         </View >
+        </>
     )
 }

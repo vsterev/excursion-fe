@@ -1,8 +1,9 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { View, Text, Button, useToggle, Hidden, MenuItem, Modal, useTheme } from 'reshaped'
+import { View, Button, useToggle, Hidden, MenuItem, Modal, useTheme } from 'reshaped'
+import { SOLVEX_LOGO_SRC } from './branding'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
-import { Menu, Home, MapPin, Users, Info, Sun, Moon } from 'lucide-react'
+import { Menu, Home, MapPin, Users, Building2, Sun, Moon } from 'lucide-react'
 
 export function AppLayout() {
     const location = useLocation()
@@ -32,8 +33,16 @@ export function AppLayout() {
                     paddingBlock={{ s: 3, m: 2 }} paddingInline={{ s: 4, m: 2 }}
                 // attributes={{ style: { maxWidth: 1200, margin: '0 auto', height: 74 } }}
                 >
-                    <NavLink to="/" style={{ textDecoration: 'none' }}>
-                        <Text variant={{ s: 'body-1', m: 'title-6' }} weight="bold" color="primary">{t('nav.logo')}</Text>
+                    <NavLink
+                        to="/"
+                        style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+                        aria-label={t('nav.logoAlt')}
+                    >
+                        <img
+                            src={SOLVEX_LOGO_SRC}
+                            alt=""
+                            style={{ display: 'block', height: 40, width: 'auto', maxWidth: 200 }}
+                        />
                     </NavLink>
 
                     {/* Desktop links */}
@@ -41,7 +50,7 @@ export function AppLayout() {
                         <View direction="row" gap={3} borderRadius="medium">
                             <MenuItem roundedCorners size='large' onClick={() => navigate("/excursions")} selected={location.pathname === '/excursions'}>{t('nav.excursions')}</MenuItem>
                             <MenuItem roundedCorners size='large' onClick={() => navigate("/representatives")} selected={location.pathname === '/representatives'}>{t('nav.representatives')}</MenuItem>
-                            <MenuItem roundedCorners size='large' onClick={() => navigate("/useful-info")} selected={location.pathname === '/useful-info'}>{t('nav.usefulInfo')}</MenuItem>
+                            <MenuItem roundedCorners size='large' onClick={() => navigate("/about")} selected={location.pathname === '/about'}>{t('nav.aboutUs')}</MenuItem>
                         </View>
                         <View direction="row" align="center" gap={2}>
                             <Button
@@ -81,7 +90,7 @@ export function AppLayout() {
                         <MenuItem roundedCorners size='large' startSlot={<Home size={18} />} onClick={() => modalNavigate("/")} selected={location.pathname === '/'}>{t('nav.home')}</MenuItem>
                         <MenuItem roundedCorners size='large' startSlot={<MapPin size={18} />} onClick={() => modalNavigate("/excursions")} selected={location.pathname === '/excursions'}>{t('nav.excursions')}</MenuItem>
                         <MenuItem roundedCorners size='large' startSlot={<Users size={18} />} onClick={() => modalNavigate("/representatives")} selected={location.pathname === '/representatives'}>{t('nav.representatives')}</MenuItem>
-                        <MenuItem roundedCorners size='large' startSlot={<Info size={18} />} onClick={() => modalNavigate("/useful-info")} selected={location.pathname === '/useful-info'}>{t('nav.usefulInfo')}</MenuItem>
+                        <MenuItem roundedCorners size='large' startSlot={<Building2 size={18} />} onClick={() => modalNavigate("/about")} selected={location.pathname === '/about'}>{t('nav.aboutUs')}</MenuItem>
                     </View>
                 </Modal>
 
