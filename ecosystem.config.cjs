@@ -15,7 +15,7 @@ module.exports = {
     production: {
       user: "vasil",
       host: "192.168.10.27",
-      ref: "origin/reshaped",
+      ref: "origin/main",
       path: "/home/vasil/pm2/trips/trips-frontend",
       repo: "git@github.com:vsterev/excursion-fe.git",
       "post-deploy": `source ~/.nvm/nvm.sh \
