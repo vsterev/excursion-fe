@@ -25,6 +25,7 @@ export function AppLayout() {
                 zIndex={100}
                 backgroundColor="elevation-raised"
                 attributes={{ style: { top: 0, borderBottom: '1px solid var(--border)' } }}
+                paddingInline={{ s: 4, m: 6, l: 10 }}
             >
                 <View
                     direction="row"
@@ -32,7 +33,7 @@ export function AppLayout() {
                     justify="space-between"
                     paddingBlock={{ s: 3, m: 2 }} paddingInline={{ s: 4, m: 2 }}
                 >
-                    <Hidden hide={{ s: true, m: false }}>
+                    <Hidden hide={{ s: true, l: false }}>
                         <NavLink
                             to="/"
                             style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
