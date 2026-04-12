@@ -1,66 +1,104 @@
-import { useState, useEffect } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { View, Button, useToggle, Hidden, MenuItem, Modal, useTheme } from 'reshaped'
+import { SOLVEX_LOGO_SRC } from './branding'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
+import { Menu, Home, MapPin, Users, Building2, Sun, Moon } from 'lucide-react'
 
 export function AppLayout() {
-    const [open, setOpen] = useState(false)
     const location = useLocation()
     const { t } = useTranslation()
 
-    useEffect(() => { setOpen(false) }, [location])
+    const navigate = useNavigate();
+    const { toggle, deactivate, active } = useToggle(false);
+    const { colorMode, setColorMode } = useTheme();
+
+    const modalNavigate = (path: string) => {
+        navigate(path)
+        deactivate()
+    }
 
     return (
-        <div>
-            <nav className="nav">
-                <div className="nav-inner">
-                    <NavLink to="/" className="nav-logo">{t('nav.logo')}</NavLink>
+        <View>
+            <View
+                position="sticky"
+                zIndex={100}
+                backgroundColor="elevation-raised"
+                attributes={{ style: { top: 0, borderBottom: '1px solid var(--border)' } }}
+            >
+                <View
+                    direction="row"
+                    align="center"
+                    justify="space-between"
+                    paddingBlock={{ s: 3, m: 2 }} paddingInline={{ s: 4, m: 2 }}
+                >
+                    <Hidden hide={{ s: true, m: false }}>
+                        <NavLink
+                            to="/"
+                            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+                            aria-label={t('nav.logoAlt')}
+                        >
+                            <img
+                                src={SOLVEX_LOGO_SRC}
+                                alt=""
+                                style={{ display: 'block', height: 40, width: 'auto', maxWidth: 200 }}
+                            />
+                        </NavLink>
+                    </Hidden>
 
                     {/* Desktop links */}
-                    <div className="nav-links nav-links--desktop">
-                        <NavLink to="/excursions" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-                            {t('nav.excursions')}
-                        </NavLink>
-                        <NavLink to="/representatives" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-                            {t('nav.representatives')}
-                        </NavLink>
-                        <NavLink to="/useful-info" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-                            {t('nav.usefulInfo')}
-                        </NavLink>
-                        {/* <LanguageSwitcher /> */}
-                    </div>
+                    <Hidden hide={{ s: true, l: false }}>
+                        <View direction="row" gap={3} borderRadius="medium">
+                            <MenuItem roundedCorners size='large' onClick={() => navigate("/excursions")} selected={location.pathname === '/excursions'}>{t('nav.excursions')}</MenuItem>
+                            <MenuItem roundedCorners size='large' onClick={() => navigate("/representatives")} selected={location.pathname === '/representatives'}>{t('nav.representatives')}</MenuItem>
+                            <MenuItem roundedCorners size='large' onClick={() => navigate("/about")} selected={location.pathname === '/about'}>{t('nav.aboutUs')}</MenuItem>
+                        </View>
+                        <View direction="row" align="center" gap={2}>
+                            <Button
+                                icon={colorMode === 'dark' ? Sun : Moon}
+                                onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')}
+                                variant='ghost'
+                                size='large'
+                            />
+                            <LanguageSwitcher />
+                        </View>
+                    </Hidden>
 
-                    {/* Hamburger button — mobile only */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div className="nav-links--mobile-lang"><LanguageSwitcher /></div>
-                        <button
-                            className="nav-burger"
-                            aria-label={open ? t('nav.closeMenu') : t('nav.openMenu')}
-                            aria-expanded={open}
-                            onClick={() => setOpen(o => !o)}
-                        >
-                            <span className={`burger-icon${open ? ' open' : ''}`} />
-                        </button>
-                    </div>
-                </div>
+                    {/* Mobile */}
+                    <Hidden hide={{ s: false, l: true }}>
+                        <View direction="row" align="center" justify='space-between' grow paddingStart={{ s: 5, m: 10 }}>
+                            <LanguageSwitcher />
+                            <View direction="row" align="center" gap={1}>
+                                <Button
+                                    icon={colorMode === 'dark' ? Sun : Moon}
+                                    onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')}
+                                    variant='ghost'
+                                    size='large'
+                                />
+                                <Button icon={Menu} onClick={toggle} variant='ghost' color='primary' size='large' />
+                            </View>
+                        </View>
+                    </Hidden>
+                </View>
 
-                {/* Mobile drawer */}
-                <div className={`nav-drawer${open ? ' nav-drawer--open' : ''}`}>
-                    <NavLink to="/excursions" className={({ isActive }) => 'nav-drawer-link' + (isActive ? ' active' : '')}>
-                        🗺️ {t('nav.excursions')}
-                    </NavLink>
-                    <NavLink to="/representatives" className={({ isActive }) => 'nav-drawer-link' + (isActive ? ' active' : '')}>
-                        👥 {t('nav.representatives')}
-                    </NavLink>
-                    <NavLink to="/useful-info" className={({ isActive }) => 'nav-drawer-link' + (isActive ? ' active' : '')}>
-                        ℹ️ {t('nav.usefulInfo')}
-                    </NavLink>
-                </div>
-            </nav>
+                <Modal
+                    active={active}
+                    onClose={deactivate}
+                    position="end"
+                // transparentOverlay
+                >
+                    <View padding={4} gap={1} direction="column" >
+                        <MenuItem roundedCorners size='large' startSlot={<Home size={18} />} onClick={() => modalNavigate("/")} selected={location.pathname === '/'}>{t('nav.home')}</MenuItem>
+                        <MenuItem roundedCorners size='large' startSlot={<MapPin size={18} />} onClick={() => modalNavigate("/excursions")} selected={location.pathname === '/excursions'}>{t('nav.excursions')}</MenuItem>
+                        <MenuItem roundedCorners size='large' startSlot={<Users size={18} />} onClick={() => modalNavigate("/representatives")} selected={location.pathname === '/representatives'}>{t('nav.representatives')}</MenuItem>
+                        <MenuItem roundedCorners size='large' startSlot={<Building2 size={18} />} onClick={() => modalNavigate("/about")} selected={location.pathname === '/about'}>{t('nav.aboutUs')}</MenuItem>
+                    </View>
+                </Modal>
 
-            {open && <div className="nav-overlay" onClick={() => setOpen(false)} />}
+            </View >
+
 
             <Outlet />
-        </div>
+        </View >
     )
 }

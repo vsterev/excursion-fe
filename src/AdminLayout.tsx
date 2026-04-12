@@ -1,5 +1,6 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext'
+import { View, Text, Button, Divider, ToastProvider, MenuItem } from 'reshaped'
 
 const NAV = [
     { to: '/admin/excursions', icon: '🗺️', label: 'Екскурзии' },
@@ -17,60 +18,55 @@ export function AdminLayout() {
     }
 
     return (
-        <div style={{ display: 'flex', minHeight: '100svh' }}>
-            {/* Sidebar */}
-            <aside style={{
-                width: 240, background: '#1a1a2e', color: '#fff',
-                display: 'flex', flexDirection: 'column',
-                position: 'sticky', top: 0, height: '100svh', flexShrink: 0,
-            }}>
-                <div style={{ padding: '24px 20px 16px', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-                    <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>✈ TripsGuide</div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', marginTop: 2, textTransform: 'uppercase', letterSpacing: 1 }}>
-                        Администрация
-                    </div>
-                </div>
+        <ToastProvider>
+            <View direction="row" minHeight="100svh">
+                {/* Sidebar */}
+                <View
+                    as="aside"
+                    width={70}
+                    backgroundColor="primary-faded"
+                    position="sticky"
+                    height="100svh"
+                    direction="column"
+                    gap={5}
+                >
+                    <View gap={5} padding={5}>
+                        <Text variant="title-6" color="neutral-faded">TripsGuide</Text>
+                        <Text variant="body-1" color="neutral-faded">Администрация</Text>
+                    </View>
 
-                <nav style={{ flex: 1, padding: '12px 10px' }}>
-                    {NAV.map(({ to, icon, label }) => (
-                        <NavLink
-                            key={to}
-                            to={to}
-                            style={({ isActive }) => ({
-                                display: 'flex', alignItems: 'center', gap: 10,
-                                padding: '11px 14px', borderRadius: 8, marginBottom: 4,
-                                textDecoration: 'none', fontSize: 14, fontWeight: 500,
-                                color: isActive ? '#fff' : 'rgba(255,255,255,.6)',
-                                background: isActive ? 'rgba(255,85,51,.25)' : 'transparent',
-                                borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
-                                transition: 'all .15s',
-                            })}
+                    <View as="nav" padding={3} grow direction="column" gap={3}>
+                        {NAV.map(({ to, icon, label }) => (
+                            <MenuItem
+                                key={to}
+                                roundedCorners
+                                size='large'
+                                onClick={() => navigate(to)}
+                                selected={location.pathname === to}
+                                startSlot={<span style={{ fontSize: 18 }}>{icon}</span>}>
+                                {label}
+                            </MenuItem>
+                        ))}
+                    </View>
+
+                    <Divider attributes={{ style: { borderColor: 'rgba(255,255,255,.08)' } }} />
+                    <View padding={3}>
+                        <Button
+                            variant="solid"
+                            onClick={handleLogout}
+                            fullWidth
+                            color="primary"
                         >
-                            <span style={{ fontSize: 18 }}>{icon}</span>
-                            {label}
-                        </NavLink>
-                    ))}
-                </nav>
+                            🚪 Изход
+                        </Button>
+                    </View>
+                </View>
 
-                <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,.08)' }}>
-                    <button
-                        onClick={handleLogout}
-                        style={{
-                            width: '100%', padding: '10px 14px', borderRadius: 8,
-                            background: 'rgba(255,255,255,.06)', border: 'none',
-                            color: 'rgba(255,255,255,.6)', cursor: 'pointer',
-                            fontSize: 14, textAlign: 'left', display: 'flex', gap: 10,
-                        }}
-                    >
-                        🚪 Изход
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main */}
-            <main style={{ flex: 1, background: 'var(--bg)', overflow: 'auto' }}>
-                <Outlet />
-            </main>
-        </div>
+                {/* Main */}
+                <View grow backgroundColor="neutral-faded" height="100svh" overflow="auto">
+                    <Outlet />
+                </View>
+            </View>
+        </ToastProvider>
     )
 }

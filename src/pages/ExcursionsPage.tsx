@@ -1,152 +1,277 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { fetchExcursions } from '../api'
-import type { ExcursionDto } from '../api'
+import { View, Text, Grid, TextField, Button, Badge, Loader, Actionable, Select } from 'reshaped'
+import { fetchExcursions, fetchResorts, resolvePhotoUrl } from '../api'
+import type { ExcursionDto, ResortDto } from '../api'
 
-const TYPE_EMOJI: Record<string, string> = {
-    'Културна': '🏛️',
-    'Природна': '🌿',
-    'Планинска': '⛰️',
-    'Развлекателна': '🎢',
+function stripHtml(html: string): string {
+    const div = document.createElement('div')
+    div.innerHTML = html
+    return div.textContent ?? ''
 }
 
-function fmtDate(iso: string, locale: string) {
-    return new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+/**
+ * Must stay in sync with `<Grid columns={{ s: 1, m: 2, l: 3 }}>` below (Reshaped s/m/l ≈ 768 / 1024).
+ * First request only loads ~one viewport of cards; "Load more" uses the same batch size.
+ */
+function excursionListGridColumns(viewportWidth: number): number {
+    if (viewportWidth >= 1024) return 3
+    if (viewportWidth >= 768) return 2
+    return 1
 }
 
-type LoadState =
-    | { status: 'idle' | 'loading' }
-    | { status: 'error'; message: string }
-    | { status: 'success'; data: ExcursionDto[] }
+function computeExcursionBatchLimit(viewportHeight: number, viewportWidth: number): number {
+    const cols = excursionListGridColumns(viewportWidth)
+    const chromeAboveListPx = 300
+    const reservedBottomPx = 100
+    const cardRowEstimatePx = 290
+    const available = Math.max(180, viewportHeight - chromeAboveListPx - reservedBottomPx)
+    const rows = Math.max(2, Math.ceil(available / cardRowEstimatePx))
+    const raw = rows * cols
+    return Math.min(50, Math.max(cols * 2, raw))
+}
 
 export function ExcursionsPage() {
     const navigate = useNavigate()
-    const [searchParams] = useSearchParams()
     const { t, i18n } = useTranslation()
-    const [state, setState] = useState<LoadState>({ status: 'loading' })
-    const [typeFilter, setTypeFilter] = useState(() => searchParams.get('type') ?? 'all')
+    const [items, setItems] = useState<ExcursionDto[]>([])
+    const [hasMore, setHasMore] = useState(true)
+    const [loading, setLoading] = useState(true)
+    const [loadingMore, setLoadingMore] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [resortOptions, setResortOptions] = useState<ResortDto[]>([])
+    const [resortFilter, setResortFilter] = useState('all')
     const [q, setQ] = useState('')
-    const [priceMin, setPriceMin] = useState('')
-    const [priceMax, setPriceMax] = useState('')
-    const [dateFrom, setDateFrom] = useState('')
-    const [dateTo, setDateTo] = useState('')
+    const [debouncedQ, setDebouncedQ] = useState('')
+
+    const filterRef = useRef({ resort: resortFilter, q: debouncedQ, lang: i18n.language })
+    const itemsLenRef = useRef(0)
+    const batchLimitRef = useRef(12)
+    const fetchingMoreRef = useRef(false)
+
+    useEffect(() => {
+        filterRef.current = { resort: resortFilter, q: debouncedQ, lang: i18n.language }
+    }, [resortFilter, debouncedQ, i18n.language])
+
+    useEffect(() => {
+        itemsLenRef.current = items.length
+    }, [items.length])
+
+    useEffect(() => {
+        const tmr = setTimeout(() => setDebouncedQ(q), 350)
+        return () => clearTimeout(tmr)
+    }, [q])
+
+    useEffect(() => {
+        fetchResorts().then(setResortOptions).catch(() => setResortOptions([]))
+    }, [])
+
+    const fetchParams = useMemo(
+        () => ({
+            resortId: resortFilter !== 'all' ? Number(resortFilter) : undefined,
+            q: debouncedQ.trim() || undefined,
+        }),
+        [resortFilter, debouncedQ],
+    )
 
     useEffect(() => {
         let cancelled = false
-        fetchExcursions()
-            .then((data) => { if (!cancelled) setState({ status: 'success', data }) })
-            .catch((e: Error) => { if (!cancelled) setState({ status: 'error', message: e.message }) })
-        return () => { cancelled = true }
-    }, [i18n.language])
+        setLoading(true)
+        setError(null)
+        setItems([])
+        setHasMore(true)
 
-    const data = useMemo(() => (state.status === 'success' ? state.data : []), [state])
-    const types = useMemo(() => Array.from(new Set(data.map((x: ExcursionDto) => x.type))).sort(), [data])
+        ;(async () => {
+            try {
+                const limit = computeExcursionBatchLimit(window.innerHeight, window.innerWidth)
+                batchLimitRef.current = limit
+                const res = await fetchExcursions({
+                    limit,
+                    offset: 0,
+                    resortId: fetchParams.resortId,
+                    q: fetchParams.q,
+                })
+                if (cancelled) return
+                setItems(res.items)
+                setHasMore(res.hasMore)
+            } catch (e: unknown) {
+                if (!cancelled) setError(e instanceof Error ? e.message : 'Error')
+            } finally {
+                if (!cancelled) setLoading(false)
+            }
+        })()
 
-    const filtered = useMemo(() => {
-        return data.filter((x: ExcursionDto) => {
-            if (typeFilter !== 'all' && x.type !== typeFilter) return false
-            if (q && !`${x.destination} ${x.from} ${x.description} ${x.type}`.toLowerCase().includes(q.toLowerCase())) return false
-            if (priceMin && x.priceBgn < Number(priceMin)) return false
-            if (priceMax && x.priceBgn > Number(priceMax)) return false
-            if (dateFrom && x.date < dateFrom) return false
-            if (dateTo && x.date > dateTo) return false
-            return true
-        })
-    }, [data, typeFilter, q, priceMin, priceMax, dateFrom, dateTo])
+        return () => {
+            cancelled = true
+        }
+    }, [fetchParams.resortId, fetchParams.q, i18n.language])
 
-    const hasFilters = q || typeFilter !== 'all' || priceMin || priceMax || dateFrom || dateTo
+    const loadMore = useCallback(async () => {
+        if (!hasMore || loadingMore || loading || fetchingMoreRef.current) return
+        fetchingMoreRef.current = true
+        const snap = { ...filterRef.current }
+        setLoadingMore(true)
+        setError(null)
+        try {
+            const res = await fetchExcursions({
+                limit: batchLimitRef.current,
+                offset: itemsLenRef.current,
+                resortId: snap.resort !== 'all' ? Number(snap.resort) : undefined,
+                q: snap.q.trim() || undefined,
+            })
+            const cur = filterRef.current
+            if (
+                snap.resort !== cur.resort ||
+                snap.q !== cur.q ||
+                snap.lang !== cur.lang
+            ) {
+                return
+            }
+            setItems((prev) => [...prev, ...res.items])
+            setHasMore(res.hasMore)
+        } catch (e: unknown) {
+            setError(e instanceof Error ? e.message : 'Error')
+        } finally {
+            fetchingMoreRef.current = false
+            setLoadingMore(false)
+        }
+    }, [hasMore, loadingMore, loading])
+
+    const hasFilters = q.trim().length > 0 || resortFilter !== 'all'
 
     function clearFilters() {
-        setQ(''); setTypeFilter('all'); setPriceMin(''); setPriceMax(''); setDateFrom(''); setDateTo('')
+        setQ('')
+        setResortFilter('all')
     }
 
-    const locale = i18n.language?.startsWith('de') ? 'de-DE' : i18n.language?.startsWith('en') ? 'en-GB' : 'bg-BG'
-
     return (
-        <div className="page">
-            <div className="page-header">
-                <h1>{t('excursions.title')}</h1>
-                <p>{t('excursions.subtitle')}</p>
-            </div>
+        <View maxWidth={{ s: '300px', m: '700px', l: '1200px' }}
+            width="100%"
+            gap={5}
+            paddingBlock={{ s: 5, m: 8 }}
+            paddingInline={{ s: 4, m: 6 }}
+            attributes={{ style: { margin: '0 auto' } }}
+        >
+            <View gap={2}>
+                <Text as="h1" variant={{ s: 'title-6', m: 'title-4' }} weight="bold">{t('excursions.title')}</Text>
+                <Text variant={{ s: 'body-2', m: 'body-1' }} color="neutral-faded">{t('excursions.subtitle')}</Text>
+            </View>
 
-            {/* Type chips */}
-            {types.length > 0 && (
-                <div className="chips">
-                    <button className={`chip${typeFilter === 'all' ? ' chip-active' : ''}`} onClick={() => setTypeFilter('all')}>
-                        {t('excursions.allTypes')}
-                    </button>
-                    {types.map((type: string) => (
-                        <button key={type} className={`chip${typeFilter === type ? ' chip-active' : ''}`} onClick={() => setTypeFilter(type)}>
-                            {TYPE_EMOJI[type] ?? ''} {t(`home.categories.${type}`, type)}
-                        </button>
-                    ))}
-                </div>
-            )}
-
-            {/* Filters bar */}
-            <div className="filters-bar">
-                <div className="filters-row">
-                    <div className="filter-group" style={{ flex: 2, minWidth: 200 }}>
-                        <label className="filter-label">🔍</label>
-                        <input className="filter-input" value={q} onChange={e => setQ(e.target.value)} placeholder={`${t('excursions.title')}…`} />
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">{t('excursions.filterSort')} min ({t('common.bgn')})</label>
-                        <input className="filter-input" type="number" min="0" value={priceMin} onChange={e => setPriceMin(e.target.value)} placeholder="0" />
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">{t('excursions.filterSort')} max ({t('common.bgn')})</label>
-                        <input className="filter-input" type="number" min="0" value={priceMax} onChange={e => setPriceMax(e.target.value)} placeholder="9999" />
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">{t('excursions.date')} from</label>
-                        <input className="filter-input" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">{t('excursions.date')} to</label>
-                        <input className="filter-input" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
-                    </div>
-                    {hasFilters && (
-                        <div className="filter-group" style={{ justifyContent: 'flex-end' }}>
-                            <label className="filter-label">&nbsp;</label>
-                            <button className="filter-clear" onClick={clearFilters}>✕</button>
-                        </div>
+            <View shadow="overlay" padding={5} borderRadius="medium" backgroundColor="elevation-raised" paddingBottom={6}>
+                <View direction={{ s: 'column', m: 'row' }} gap={4} wrap>
+                    <View grow>
+                        <TextField
+                            name="search"
+                            placeholder={`${t('excursions.title')}…`}
+                            value={q}
+                            onChange={({ value }) => setQ(value)}
+                            prefix="🔍"
+                        />
+                    </View>
+                    {resortOptions.length > 0 && (
+                        <View width={{ s: '100%', m: '220px' }}>
+                            <Select
+                                name="resort"
+                                value={resortFilter}
+                                onChange={({ value }) => setResortFilter(value)}
+                            >
+                                <option value="all">{t('usefulInfo.allResorts')}</option>
+                                {resortOptions.map(r => (
+                                    <option key={r.id} value={String(r.id)}>{r.name}</option>
+                                ))}
+                            </Select>
+                        </View>
                     )}
-                </div>
-            </div>
+                    {hasFilters && (
+                        <View justify="end">
+                            <Button variant="ghost" color="primary" onClick={clearFilters}>✕</Button>
+                        </View>
+                    )}
+                </View>
+            </View>
 
-            {/* States */}
-            {state.status === 'loading' && (
-                <div className="empty-state"><div className="empty-icon">⏳</div><div className="empty-text">{t('excursions.loading')}</div></div>
+            {loading && (
+                <View align="center" padding={16}><Loader size="large" /></View>
             )}
-            {state.status === 'error' && (
-                <div className="empty-state" style={{ color: '#e53e3e' }}><div className="empty-icon">⚠️</div><div className="empty-text">{state.message}</div></div>
+            {error && !loading && (
+                <View align="center" padding={16} gap={3}>
+                    <Text variant="title-2">⚠️</Text>
+                    <Text color="critical">{error}</Text>
+                </View>
             )}
-            {state.status === 'success' && filtered.length === 0 && (
-                <div className="empty-state"><div className="empty-icon">🔍</div><div className="empty-text">{t('excursions.noResults')}</div></div>
+            {!loading && !error && items.length === 0 && (
+                <View align="center" padding={16} gap={3}>
+                    <Text variant="title-2">🔍</Text>
+                    <Text color="neutral-faded">{t('excursions.noResults')}</Text>
+                </View>
             )}
 
-            {/* Cards grid */}
-            <div className="cards-grid">
-                {filtered.map((x: ExcursionDto) => (
-                    <div key={x.id} className="tour-card" onClick={() => navigate(`/excursions/${x.id}`)}>
-                        <div className="tour-card-img-placeholder">{TYPE_EMOJI[x.type] ?? '🗺️'}</div>
-                        <div className="tour-card-body">
-                            <div className="tour-card-type">{TYPE_EMOJI[x.type] ?? ''} {t(`home.categories.${x.type}`, x.type)}</div>
-                            <p className="tour-card-title">{x.destination}</p>
-                            <p className="tour-card-meta">📍 {t('excursions.departure')} {x.from}</p>
-                            <p className="tour-card-meta" style={{ marginTop: 4, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                {x.description}
-                            </p>
-                        </div>
-                        <div className="tour-card-footer">
-                            <div className="tour-card-price">{x.priceBgn} {t('common.bgn')} <span>{t('excursions.from')}</span></div>
-                            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>📅 {fmtDate(x.date, locale)}</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
+            {!loading && items.length > 0 && (
+                <>
+                    <Grid columns={{ s: 1, m: 2, l: 3 }} gap={{ s: 4, m: 6 }} justify="center">
+                        {items.map((x: ExcursionDto) => (
+                            <Actionable
+                                key={x.id}
+                                onClick={() => navigate(`/excursions/${x.id}`)}
+                                attributes={{ style: { display: 'block', width: '100%', maxWidth: 350, marginInline: 'auto' } }}
+                            >
+                                <View
+                                    shadow="overlay"
+                                    borderRadius="medium"
+                                    backgroundColor="elevation-raised"
+                                    overflow="hidden"
+                                    maxWidth={{ s: '300px', m: '700px', l: '1200px' }}
+                                >
+                                    {x.coverPhoto ? (
+                                        <img
+                                            src={resolvePhotoUrl(x.coverPhoto) ?? ''}
+                                            alt={x.destination}
+                                        />
+                                    ) : (
+                                        <View
+                                            align="center"
+                                            justify="center"
+                                            attributes={{ style: { height: 160, flexShrink: 0, background: 'linear-gradient(135deg,#667eea,#764ba2)', fontSize: 48 } }}
+                                        >
+                                            🗺️
+                                        </View>
+                                    )}
+                                    <View padding={4} gap={2} direction="column" attributes={{ style: { overflow: 'hidden', minWidth: 0 } }}>
+                                        {x.price != null && (
+                                            <View direction="row" justify="end">
+                                                <Badge color="positive" size="large">{t('excursions.from')} {x.price} €</Badge>
+                                            </View>
+                                        )}
+                                        <Text variant="featured-1" weight="bold" attributes={{ style: { display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' } }}>{x.destination} </Text>
+                                        {x.departures?.length > 0 && (
+                                            <Text variant="body-2" color="neutral-faded" attributes={{ style: { display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' } }}>
+                                                📍 {t('excursions.departure')} {x.departures.map(d => d.name).join(', ')}
+                                            </Text>
+                                        )}
+                                        <Text variant="body-1" color="neutral-faded" attributes={{ style: { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } }}>
+                                            {stripHtml(x.description)}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </Actionable>
+                        ))}
+                    </Grid>
+                    {hasMore ? (
+                        <View align="center" paddingTop={4} gap={3}>
+                            <Button
+                                type="button"
+                                variant="faded"
+                                color="primary"
+                                loading={loadingMore}
+                                onClick={() => void loadMore()}
+                            >
+                                {t('excursions.loadMore')}
+                            </Button>
+                        </View>
+                    ) : null}
+                </>
+            )}
+        </View >
     )
 }

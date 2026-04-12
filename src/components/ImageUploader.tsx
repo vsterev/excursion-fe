@@ -8,14 +8,26 @@ interface Props {
     label?: string
     token?: string
     category?: string
+    /** When false, the upload request is not sent (e.g. until required form fields are filled). */
+    enabled?: boolean
+    /** Shown when `enabled` is false (optional). */
+    disabledHint?: string
 }
 
-export function ImageUploader({ onUploaded, label = 'Качи снимка', token: tokenProp, category }: Props) {
+export function ImageUploader({
+    onUploaded,
+    label = 'Качи снимка',
+    token: tokenProp,
+    category,
+    enabled = true,
+    disabledHint,
+}: Props) {
     const inputRef = useRef<HTMLInputElement>(null)
     const [uploading, setUploading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
     async function handleFile(file: File) {
+        if (!enabled) return
         setUploading(true)
         setError(null)
         try {
@@ -45,11 +57,26 @@ export function ImageUploader({ onUploaded, label = 'Качи снимка', tok
             <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => inputRef.current?.click()}
-                disabled={uploading}
+                onClick={() => {
+                    if (!enabled) return
+                    inputRef.current?.click()
+                }}
+                disabled={uploading || !enabled}
             >
                 {uploading ? 'Качване...' : label}
             </button>
+            {!enabled && disabledHint ? (
+                <span
+                    style={{
+                        display: 'block',
+                        marginTop: 6,
+                        fontSize: 13,
+                        color: 'var(--text-muted, #6b7280)',
+                    }}
+                >
+                    {disabledHint}
+                </span>
+            ) : null}
             <input
                 ref={inputRef}
                 type="file"

@@ -1,4 +1,6 @@
+import { HelmetProvider } from 'react-helmet-async'
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
+import { SiteHelmet } from './components/SiteHelmet'
 import { AppLayout } from './AppLayout'
 import { AdminLayout } from './AdminLayout'
 import { AuthProvider, useAuth } from './AuthContext'
@@ -8,10 +10,12 @@ import { ExcursionDetailPage } from './pages/ExcursionDetailPage'
 import { RepresentativesPage } from './pages/RepresentativesPage'
 import { RepresentativeDetailPage } from './pages/RepresentativeDetailPage'
 import { UsefulInfoPage } from './pages/UsefulInfoPage'
+import { AboutPage } from './pages/AboutPage'
 import { LoginPage } from './pages/LoginPage'
 import { AdminExcursionsPage } from './pages/admin/AdminExcursionsPage'
 import { AdminRepresentativesPage } from './pages/admin/AdminRepresentativesPage'
 import { AdminUsefulInfoPage } from './pages/admin/AdminUsefulInfoPage'
+import { NotFoundPage } from './pages/NotFoundPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuth()
@@ -28,7 +32,10 @@ function AppRoutes() {
         <Route path="/excursions/:id" element={<ExcursionDetailPage />} />
         <Route path="/representatives" element={<RepresentativesPage />} />
         <Route path="/representatives/:id" element={<RepresentativeDetailPage />} />
+        {/* Public useful-info: not linked in nav/home for now; URL + admin CRUD remain for later use */}
         <Route path="/useful-info" element={<UsefulInfoPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
 
       {/* Auth */}
@@ -47,10 +54,13 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <SiteHelmet />
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   )
 }

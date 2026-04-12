@@ -1,85 +1,125 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-
-const CATEGORIES = [
-    { emoji: '🏛️', key: 'Културна' as const },
-    { emoji: '🌿', key: 'Природна' as const },
-    { emoji: '⛰️', key: 'Планинска' as const },
-    { emoji: '🎢', key: 'Развлекателна' as const },
-]
+import { SOLVEX_LOGO_SRC } from '../branding'
+import { View, Text, Grid, Hidden } from 'reshaped'
 
 export function HomePage() {
     const { t } = useTranslation()
 
     return (
-        <div>
+        <View>
             {/* Hero */}
-            <div className="hero">
+            <View
+                position="relative"
+                overflow="hidden"
+                height={{ s: 40, m: 105 }}
+            // attributes={{ style: { background: 'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)' } }}
+
+            >
                 <img
-                    // className="hero-img"
                     src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1400&q=80"
                     alt="Hero"
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
                 />
-                <div className="hero-content">
-                    <div className="hero-badge">{t('home.badge')}</div>
-                    <h1 className="hero-title">{t('home.title').split('\n').map((line, i) => (
-                        <span key={i}>{line}{i === 0 && <br />}</span>
-                    ))}</h1>
-                    <p className="hero-sub">{t('home.subtitle')}</p>
-                    <Link to="/excursions" className="hero-cta">
-                        {t('home.cta')}
-                    </Link>
-                </div>
-            </div>
+                <Hidden hide={{ s: false, l: true }}>
+                    <View
+                        position="absolute"
+                        zIndex={2}
+                        padding={4}
+                        attributes={{ style: { top: 0, left: 0 } }}
+                    >
+                        <img
+                            src={SOLVEX_LOGO_SRC}
+                            alt={t('nav.logoAlt')}
+                            style={{ display: 'block', height: 44, width: 'auto', maxWidth: 'min(260px, 85vw)' }}
+                        />
+                    </View>
+                </Hidden>
+                <View
+                    position="relative"
+                    height="100%"
+                    justify="end"
+                    direction='row'
+                >
+                    <Hidden hide={{ s: true, l: false }}>
+                        <View
+                            height="100%"
+                            padding={10}
+                            attributes={{
+                                style: {
+                                    backgroundColor: '#070061',
+                                    width: 'min(380px, 40vw)',
+                                    flexShrink: 0,
+                                    boxSizing: 'border-box',
+                                },
+                            }}
+                        >
+                            <img
+                                src={SOLVEX_LOGO_SRC}
+                                alt={t('nav.logoAlt')}
+                                style={{
+                                    display: 'block',
+                                    width: '100%',
+                                    height: 'auto',
+                                    maxHeight: 120,
+                                    objectFit: 'contain',
+                                    marginBottom: 16,
+                                }}
+                            />
+                            <Text as="h1" variant="featured-1" weight="bold" attributes={{ style: { color: '#fff', marginBottom: 8, letterSpacing: -0.5, lineHeight: 1.15 } }}>
+                                {t('home.title').split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}
+                            </Text>
+                            <Text variant="body-2" attributes={{ style: { color: 'rgba(255,255,255,.85)', marginBottom: 20, maxWidth: 480 } }}>
+                                {t('home.subtitle')}
+                            </Text>
+                        </View>
+                    </Hidden>
 
-            <div className="page">
-                {/* Categories */}
-                <div style={{ marginBottom: 48 }}>
-                    <div className="page-header">
-                        <h1>{t('home.categoriesTitle')}</h1>
-                        <p>{t('home.categoriesSubtitle')}</p>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px,1fr))', gap: 16 }}>
-                        {CATEGORIES.map(c => (
-                            <Link
-                                key={c.key}
-                                to={`/excursions?type=${encodeURIComponent(c.key)}`}
-                                style={{ textDecoration: 'none' }}
-                            >
-                                <div className="tour-card" style={{ padding: 24, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                                    <div style={{ fontSize: 36 }}>{c.emoji}</div>
-                                    <div>
-                                        <div style={{ fontWeight: 700, fontSize: 16 }}>{t(`home.categories.${c.key}`)}</div>
-                                        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{t('home.seeAll')}</div>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
+                </View>
+            </View>
 
-                {/* Quick links */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                    <Link to="/representatives" style={{ textDecoration: 'none' }}>
-                        <div className="section-card" style={{ display: 'flex', alignItems: 'center', gap: 20, cursor: 'pointer', transition: 'box-shadow .2s', marginBottom: 0 }}>
-                            <div style={{ fontSize: 48 }}>👥</div>
-                            <div>
-                                <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>{t('home.repsTitle')}</div>
-                                <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('home.repsDesc')}</div>
-                            </div>
-                        </div>
+            <View maxWidth="1200px" width="100%" paddingInline={{ s: 4, m: 6 }} paddingBlock={8} align="center" grow justify="center" attributes={{ style: { margin: '0 auto' } }}>
+                {/* About + representatives — same row (large screens), same card style */}
+                <Grid columns={{ s: 1, m: 2 }} gap={4} align="stretch">
+                    <Link to="/about" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+                        <View
+                            shadow="overlay"
+                            padding={5}
+                            borderRadius="medium"
+                            backgroundColor="primary-faded"
+                            height="100%"
+                        >
+                            <View direction="row" align="center" gap={4}>
+                                <Text attributes={{ style: { fontSize: 32, lineHeight: 1 } }}>🏢</Text>
+                                <View>
+                                    <Text variant="body-1" weight="bold">{t('home.aboutSectionTitle')}</Text>
+                                    <Text variant="body-3" color="neutral-faded">{t('home.aboutSectionSubtitle')}</Text>
+                                    <Text variant="caption-1" color="neutral-faded" attributes={{ style: { marginTop: 6 } }}>
+                                        {t('home.aboutSectionCta')}
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
                     </Link>
-                    <Link to="/useful-info" style={{ textDecoration: 'none' }}>
-                        <div className="section-card" style={{ display: 'flex', alignItems: 'center', gap: 20, cursor: 'pointer', transition: 'box-shadow .2s', marginBottom: 0 }}>
-                            <div style={{ fontSize: 48 }}>ℹ️</div>
-                            <div>
-                                <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>{t('home.infoTitle')}</div>
-                                <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('home.infoDesc')}</div>
-                            </div>
-                        </div>
+                    <Link to="/representatives" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+                        <View
+                            shadow="overlay"
+                            padding={5}
+                            borderRadius="medium"
+                            backgroundColor="primary-faded"
+                            height="100%"
+                        >
+                            <View direction="row" align="center" gap={4}>
+                                <Text attributes={{ style: { fontSize: 32, lineHeight: 1 } }}>👥</Text>
+                                <View>
+                                    <Text variant="body-1" weight="bold">{t('home.repsTitle')}</Text>
+                                    <Text variant="body-3" color="neutral-faded">{t('home.repsDesc')}</Text>
+                                </View>
+                            </View>
+                        </View>
                     </Link>
-                </div>
-            </div>
-        </div>
+                </Grid>
+            </View>
+        </View >
     )
 }

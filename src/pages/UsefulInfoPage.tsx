@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { View, Text, Select, Button, Badge, Loader } from 'reshaped'
 import { fetchUsefulInfo } from '../api'
 import type { UsefulInfoDto } from '../api'
 
@@ -33,70 +34,77 @@ export function UsefulInfoPage() {
     }), [data, resortFilter, categoryFilter])
 
     return (
-        <div className="page">
-            <div className="page-header">
-                <h1>{t('usefulInfo.title')}</h1>
-                <p>{t('usefulInfo.subtitle')}</p>
-            </div>
+        <View maxWidth="1200px" width="100%" paddingBlock={{ s: 5, m: 8 }} paddingInline={{ s: 4, m: 6 }} attributes={{ style: { margin: '0 auto' } }}>
+            <View gap={1} paddingBottom={8}>
+                <Text as="h1" variant="title-1" weight="bold">{t('usefulInfo.title')}</Text>
+                <Text variant="body-2" color="neutral-faded">{t('usefulInfo.subtitle')}</Text>
+            </View>
 
             {/* Filters */}
-            <div className="filters-bar">
-                <div className="filters-row">
-                    <div className="filter-group">
-                        <label className="filter-label">{t('representatives.resort')}</label>
-                        <select className="filter-select" value={resortFilter} onChange={e => setResortFilter(e.target.value)}>
+            <View shadow="raised" padding={5} borderRadius="medium" backgroundColor="white" paddingBottom={6}>
+                <View direction={{ s: 'column', m: 'row' }} gap={4} align="end">
+                    <View minWidth="180px">
+                        <Select name="resort" value={resortFilter} onChange={({ value }) => setResortFilter(value)}>
                             <option value="all">{t('usefulInfo.allResorts')}</option>
                             {resorts.map((r: string) => <option key={r} value={r}>{r}</option>)}
-                        </select>
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">{t('usefulInfo.category')}</label>
-                        <select className="filter-select" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
+                        </Select>
+                    </View>
+                    <View minWidth="180px">
+                        <Select name="category" value={categoryFilter} onChange={({ value }) => setCategoryFilter(value)}>
                             <option value="all">{t('usefulInfo.allCategories')}</option>
                             {categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    </div>
+                        </Select>
+                    </View>
                     {(resortFilter !== 'all' || categoryFilter !== 'all') && (
-                        <div className="filter-group" style={{ justifyContent: 'flex-end' }}>
-                            <label className="filter-label">&nbsp;</label>
-                            <button className="filter-clear" onClick={() => { setResortFilter('all'); setCategoryFilter('all') }}>✕</button>
-                        </div>
+                        <Button variant="ghost" color="primary" onClick={() => { setResortFilter('all'); setCategoryFilter('all') }}>✕</Button>
                     )}
-                </div>
-            </div>
+                </View>
+            </View>
 
             {/* States */}
             {state.status === 'loading' && (
-                <div className="empty-state"><div className="empty-icon">⏳</div><div className="empty-text">{t('usefulInfo.loading')}</div></div>
+                <View align="center" padding={16}><Loader size="large" /></View>
             )}
             {state.status === 'error' && (
-                <div className="empty-state" style={{ color: '#e53e3e' }}><div className="empty-icon">⚠️</div><div className="empty-text">{state.message}</div></div>
+                <View align="center" padding={16} gap={3}>
+                    <Text variant="title-2">⚠️</Text>
+                    <Text color="critical">{state.message}</Text>
+                </View>
             )}
             {state.status === 'success' && filtered.length === 0 && (
-                <div className="empty-state"><div className="empty-icon">ℹ️</div><div className="empty-text">{t('usefulInfo.noResults')}</div></div>
+                <View align="center" padding={16} gap={3}>
+                    <Text variant="title-2">ℹ️</Text>
+                    <Text color="neutral-faded">{t('usefulInfo.noResults')}</Text>
+                </View>
             )}
 
-            {/* Cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <View gap={4}>
                 {filtered.map((item: UsefulInfoDto) => (
-                    <div key={item.id} className="section-card" style={{ marginBottom: 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-                            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{item.title}</h3>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                <span className="chip" style={{ fontSize: 11, padding: '2px 10px' }}>{item.resort}</span>
-                                <span className="chip" style={{ fontSize: 11, padding: '2px 10px' }}>{item.category}</span>
-                            </div>
-                        </div>
-                        <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.7 }}>{item.body}</p>
+                    <View key={item.id} shadow="raised" padding={6} borderRadius="medium" backgroundColor="white" attributes={{ style: { borderLeft: '4px solid var(--primary)' } }}>
+                        <View direction={{ s: 'column', m: 'row' }} justify="space-between" align={{ s: 'start', m: 'start' }} gap={3} paddingBottom={2}>
+                            <Text variant="title-3" weight="bold">{item.title}</Text>
+                            <View direction="row" gap={2}>
+                                <Badge color="neutral">{item.resort}</Badge>
+                                <Badge color="primary">{item.category}</Badge>
+                            </View>
+                        </View>
+                        <Text variant="body-2" color="neutral-faded" attributes={{ style: { lineHeight: 1.7, whiteSpace: 'pre-line' } }}>
+                            {item.body}
+                        </Text>
                         {item.url && (
-                            <a href={item.url} target="_blank" rel="noopener noreferrer"
-                                style={{ display: 'inline-block', marginTop: 10, color: 'var(--primary)', fontWeight: 600, fontSize: 14 }}>
+                            <Text
+                                as="a"
+                                variant="body-2"
+                                weight="bold"
+                                color="primary"
+                                attributes={{ href: item.url, target: '_blank', rel: 'noopener noreferrer', style: { display: 'inline-block', marginTop: 10 } }}
+                            >
                                 {t('usefulInfo.visitLink')}
-                            </a>
+                            </Text>
                         )}
-                    </div>
+                    </View>
                 ))}
-            </div>
-        </div>
+            </View>
+        </View>
     )
 }

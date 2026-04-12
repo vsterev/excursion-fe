@@ -1,4 +1,22 @@
+import { notifyAdminUnauthorized } from './adminSession'
+
 const API = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4010'
+
+async function readApiError(res: Response): Promise<string> {
+    const fallback = `${res.status} ${res.statusText}`
+    const raw = await res.text()
+    if (!raw.trim()) return fallback
+    try {
+        const err = JSON.parse(raw) as { message?: string; details?: { message?: string } | string }
+        if (typeof err?.message === 'string' && err.message) return err.message
+        const d = err?.details
+        if (d && typeof d === 'object' && typeof d.message === 'string') return d.message
+        if (typeof d === 'string') return d
+    } catch {
+        /* не е JSON */
+    }
+    return raw.length > 200 ? `${raw.slice(0, 200)}…` : raw
+}
 
 async function req<T>(method: string, path: string, token: string, body?: unknown): Promise<T> {
     const res = await fetch(`${API}/api${path}`, {
@@ -10,8 +28,8 @@ async function req<T>(method: string, path: string, token: string, body?: unknow
         body: body ? JSON.stringify(body) : undefined,
     })
     if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: res.statusText }))
-        throw new Error(err?.message ?? res.statusText)
+        if (res.status === 401) notifyAdminUnauthorized()
+        throw new Error(await readApiError(res))
     }
     return res.status === 204 ? (undefined as T) : (res.json() as Promise<T>)
 }
@@ -32,8 +50,8 @@ export async function uploadFile(
         body: fd,
     })
     if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: res.statusText }))
-        throw new Error(err?.message ?? res.statusText)
+        if (res.status === 401) notifyAdminUnauthorized()
+        throw new Error(await readApiError(res))
     }
     const data = await res.json() as { url: string }
     // Return absolute URL so <img src> works from frontend dev server

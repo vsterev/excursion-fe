@@ -5,27 +5,28 @@ import {
     adminUpdateUsefulInfo, adminDeleteUsefulInfo,
 } from '../../adminApi'
 import { ImageUploader } from '../../components/ImageUploader'
+import { View, Text, Button, Loader, Badge, TextField, TextArea, Table, Divider, Grid } from 'reshaped'
+import { useAdminToast, unknownErrorMessage } from '../../hooks/useAdminToast'
 
-const EMPTY = { resort: '', category: '', title: '', content: '', url: '', urlLabel: '' }
+const EMPTY = { resort: '', category: '', title: '', content: '', url: '' }
 
 interface InfoRow {
     id: string
     resort: string
     category: string
     title: string
-    content: string
-    url?: string
-    urlLabel?: string
+    body: string
+    url?: string | null
 }
 
 export function AdminUsefulInfoPage() {
     const { token } = useAuth()
+    const { toastSuccess, toastError } = useAdminToast()
     const [rows, setRows] = useState<InfoRow[]>([])
     const [loading, setLoading] = useState(true)
     const [form, setForm] = useState(EMPTY)
     const [editId, setEditId] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
-    const [error, setError] = useState('')
     const [showForm, setShowForm] = useState(false)
 
     const load = useCallback(() => {
@@ -33,143 +34,160 @@ export function AdminUsefulInfoPage() {
         setLoading(true)
         adminListUsefulInfo(token)
             .then(d => setRows(d as InfoRow[]))
-            .catch((e: Error) => setError(e.message))
+            .catch((e: unknown) => toastError(unknownErrorMessage(e), 'Неуспешно зареждане'))
             .finally(() => setLoading(false))
-    }, [token])
+    }, [token, toastError])
 
     useEffect(() => { load() }, [load])
 
     function startEdit(row: InfoRow) {
         setForm({
             resort: row.resort, category: row.category,
-            title: row.title, content: row.content,
-            url: row.url ?? '', urlLabel: row.urlLabel ?? '',
+            title: row.title, content: row.body,
+            url: row.url ?? '',
         })
-        setEditId(row.id); setShowForm(true); setError('')
+        setEditId(row.id); setShowForm(true)
     }
 
     function startNew() {
-        setForm(EMPTY); setEditId(null); setShowForm(true); setError('')
+        setForm(EMPTY); setEditId(null); setShowForm(true)
     }
 
     async function handleSave(e: React.FormEvent) {
         e.preventDefault()
         if (!token) return
-        setSaving(true); setError('')
+        setSaving(true)
         const body = {
-            resort: form.resort, category: form.category,
-            title: form.title, content: form.content,
-            url: form.url || undefined,
-            urlLabel: form.urlLabel || undefined,
+            resort: form.resort,
+            category: form.category,
+            title: form.title,
+            body: form.content,
+            url: form.url.trim() ? form.url.trim() : null,
         }
         try {
-            if (editId) await adminUpdateUsefulInfo(token, editId, body)
-            else await adminCreateUsefulInfo(token, body)
+            if (editId) {
+                await adminUpdateUsefulInfo(token, editId, body)
+                toastSuccess('Записът е обновен.')
+            } else {
+                await adminCreateUsefulInfo(token, body)
+                toastSuccess('Записът е създаден.')
+            }
             setShowForm(false); load()
         } catch (e: unknown) {
-            setError(e instanceof Error ? e.message : 'Грешка')
+            toastError(unknownErrorMessage(e), 'Запазването не бе успешно')
         } finally { setSaving(false) }
     }
 
     async function handleDelete(id: string) {
         if (!token || !confirm('Изтриване на записа?')) return
-        await adminDeleteUsefulInfo(token, id).catch((e: Error) => setError(e.message))
-        load()
+        try {
+            await adminDeleteUsefulInfo(token, id)
+            toastSuccess('Записът е изтрит.')
+            load()
+        } catch (e: unknown) {
+            toastError(unknownErrorMessage(e), 'Изтриването не бе успешно')
+        }
     }
 
-    const f = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-        setForm(prev => ({ ...prev, [k]: e.target.value }))
-
     return (
-        <div style={{ padding: 32 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>ℹ️ Полезна информация</h1>
-                <button className="btn btn-primary" onClick={startNew}>+ Добави запис</button>
-            </div>
-
-            {error && <div className="admin-error">⚠️ {error}</div>}
+        <View padding={{ s: 4, m: 8 }} gap={6}>
+            <View direction="row" justify="space-between" align="center">
+                <Text as="h1" variant="title-5" weight="bold">ℹ️ Полезна информация</Text>
+                <Button variant="solid" color="primary" onClick={startNew}>+ Добави запис</Button>
+            </View>
 
             {showForm && (
-                <div className="admin-form-card">
-                    <h2 className="admin-form-title">{editId ? 'Редактиране' : 'Нов запис'}</h2>
+                <View shadow="raised" padding={6} borderRadius="medium" backgroundColor="white" gap={5}>
+                    <Text variant="title-3" weight="bold">{editId ? 'Редактиране на запис' : 'Нов запис'}</Text>
+                    <Divider />
                     <form onSubmit={handleSave}>
-                        <div className="admin-grid-2">
-                            <div className="filter-group">
-                                <label className="filter-label">Курорт *</label>
-                                <input className="filter-input" value={form.resort} onChange={f('resort')} placeholder="Слънчев бряг" required />
-                            </div>
-                            <div className="filter-group">
-                                <label className="filter-label">Категория *</label>
-                                <input className="filter-input" value={form.category} onChange={f('category')} placeholder="Болница, Аптека…" required />
-                            </div>
-                            <div className="filter-group" style={{ gridColumn: '1 / -1' }}>
-                                <label className="filter-label">Заглавие *</label>
-                                <input className="filter-input" value={form.title} onChange={f('title')} placeholder="Спешна помощ" required />
-                            </div>
-                            <div className="filter-group" style={{ gridColumn: '1 / -1' }}>
-                                <label className="filter-label">Съдържание *</label>
-                                <textarea className="filter-input" value={form.content} onChange={f('content')} placeholder="Описание, адрес, телефон…" rows={3} required style={{ resize: 'vertical' }} />
-                            </div>
-                            <div className="filter-group">
-                                <label className="filter-label">URL (опционален)</label>
-                                <input className="filter-input" value={form.url} onChange={f('url')} placeholder="https://..." />
-                                <div style={{ marginTop: 6 }}>
-                                    <ImageUploader
-                                        token={token!}
-                                        category="homepage"
-                                        label="Качи изображение от диск"
-                                        onUploaded={(url: string) => setForm(prev => ({ ...prev, url }))}
-                                    />
-                                </div>
-                            </div>
-                            <div className="filter-group">
-                                <label className="filter-label">Текст на линка</label>
-                                <input className="filter-input" value={form.urlLabel} onChange={f('urlLabel')} placeholder="Посети сайта" />
-                            </div>
-                        </div>
-                        {error && <div className="admin-error" style={{ marginTop: 8 }}>⚠️ {error}</div>}
-                        <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-                            <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Запазване…' : 'Запази'}</button>
-                            <button type="button" className="btn btn-outline" onClick={() => setShowForm(false)}>Отказ</button>
-                        </div>
+                        <View gap={4}>
+                            <Grid columns={{ s: 1, m: 2 }} gap={4}>
+                                <View gap={1}>
+                                    <Text variant="caption-1" weight="bold">Курорт *</Text>
+                                    <TextField name="resort" placeholder="Слънчев бряг" value={form.resort} onChange={({ value }) => setForm(p => ({ ...p, resort: value }))} />
+                                </View>
+                                <View gap={1}>
+                                    <Text variant="caption-1" weight="bold">Категория *</Text>
+                                    <TextField name="category" placeholder="Болница, Аптека…" value={form.category} onChange={({ value }) => setForm(p => ({ ...p, category: value }))} />
+                                </View>
+                                <View gap={1} attributes={{ style: { gridColumn: '1 / -1' } }}>
+                                    <Text variant="caption-1" weight="bold">Заглавие *</Text>
+                                    <TextField name="title" placeholder="Спешна помощ" value={form.title} onChange={({ value }) => setForm(p => ({ ...p, title: value }))} />
+                                </View>
+                                <View gap={1} attributes={{ style: { gridColumn: '1 / -1' } }}>
+                                    <Text variant="caption-1" weight="bold">Съдържание *</Text>
+                                    <TextArea name="content" placeholder="Описание, адрес, телефон…" value={form.content} onChange={({ value }) => setForm(p => ({ ...p, content: value }))} />
+                                </View>
+                                <View gap={1}>
+                                    <Text variant="caption-1" weight="bold">URL (опционален)</Text>
+                                    <TextField name="url" placeholder="https://..." value={form.url} onChange={({ value }) => setForm(p => ({ ...p, url: value }))} />
+                                    <View paddingTop={2}>
+                                        <ImageUploader
+                                            token={token!}
+                                            category="homepage"
+                                            label="Качи изображение от диск"
+                                            onUploaded={(url: string) => setForm(prev => ({ ...prev, url }))}
+                                        />
+                                    </View>
+                                </View>
+                            </Grid>
+                            <View direction="row" gap={3}>
+                                <Button type="submit" variant="solid" color="primary" disabled={saving}>
+                                    {saving ? 'Запазване…' : 'Запази'}
+                                </Button>
+                                <Button variant="outline" color="neutral" onClick={() => setShowForm(false)}>Отказ</Button>
+                            </View>
+                        </View>
                     </form>
-                </div>
+                </View>
             )}
 
             {loading ? (
-                <div className="empty-state"><div className="empty-icon">⏳</div></div>
+                <View align="center" padding={16}><Loader size="large" /></View>
+            ) : rows.length === 0 ? (
+                <View align="center" padding={16} gap={3}>
+                    <Text variant="title-1">ℹ️</Text>
+                    <Text color="neutral-faded">Няма записи</Text>
+                </View>
             ) : (
-                <div className="admin-table-wrap">
-                    <table className="admin-table">
-                        <thead>
-                            <tr><th>Заглавие</th><th>Категория</th><th>Курорт</th><th>Съдържание</th><th>URL</th><th></th></tr>
-                        </thead>
-                        <tbody>
-                            {rows.map(r => (
-                                <tr key={r.id}>
-                                    <td><strong>{r.title}</strong></td>
-                                    <td><span style={{ background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600 }}>{r.category}</span></td>
-                                    <td>{r.resort}</td>
-                                    <td style={{ color: 'var(--text-muted)', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.content}</td>
-                                    <td>
-                                        {r.url
-                                            ? <a href={r.url} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontSize: 12 }}>{r.urlLabel || 'Линк'}</a>
-                                            : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: 6 }}>
-                                            <button className="btn btn-outline" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => startEdit(r)}>✏️ Редакция</button>
-                                            <button className="btn" style={{ padding: '5px 12px', fontSize: 12, background: '#fff5f5', color: '#c53030', border: '1px solid #fed7d7' }} onClick={() => handleDelete(r.id)}>🗑️</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {rows.length === 0 && <div className="empty-state"><div className="empty-icon">ℹ️</div><div className="empty-text">Няма записи</div></div>}
-                </div>
+                <View shadow="raised" borderRadius="medium" backgroundColor="white" overflow="hidden">
+                    <Table>
+                        <Table.Row>
+                            <Table.Heading>Заглавие</Table.Heading>
+                            <Table.Heading>Категория</Table.Heading>
+                            <Table.Heading>Курорт</Table.Heading>
+                            <Table.Heading>Съдържание</Table.Heading>
+                            <Table.Heading>URL</Table.Heading>
+                            <Table.Heading></Table.Heading>
+                        </Table.Row>
+                        {rows.map(r => (
+                            <Table.Row key={r.id}>
+                                <Table.Cell><Text weight="bold">{r.title}</Text></Table.Cell>
+                                <Table.Cell><Badge color="primary">{r.category}</Badge></Table.Cell>
+                                <Table.Cell>{r.resort}</Table.Cell>
+                                <Table.Cell>
+                                    <Text color="neutral-faded" attributes={{ style: { maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' } }}>
+                                        {r.body}
+                                    </Text>
+                                </Table.Cell>
+                                <Table.Cell>
+                                    {r.url
+                                        ? <Text as="a" variant="body-2" color="primary" attributes={{ href: r.url, target: '_blank', rel: 'noreferrer' }}>Линк</Text>
+                                        : <Text variant="body-2" color="neutral-faded">—</Text>
+                                    }
+                                </Table.Cell>
+                                <Table.Cell>
+                                    <View direction="row" gap={2}>
+                                        <Button variant="outline" color="neutral" size="small" onClick={() => startEdit(r)}>✏️ Редакция</Button>
+                                        <Button variant="outline" color="critical" size="small" onClick={() => handleDelete(r.id)}>🗑️</Button>
+                                    </View>
+                                </Table.Cell>
+                            </Table.Row>
+                        ))}
+                    </Table>
+                </View>
             )}
-        </div>
+        </View>
     )
 }

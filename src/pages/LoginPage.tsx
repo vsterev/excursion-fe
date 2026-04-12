@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
+import { View, Text, Button, Alert } from 'reshaped'
 
 export function LoginPage() {
     const { login } = useAuth()
@@ -17,77 +18,37 @@ export function LoginPage() {
         try {
             await login(email, password)
             navigate('/admin')
-        } catch (err: any) {
-            setError(err.message ?? 'Грешка при вход')
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Грешка при вход')
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <div style={{
-            minHeight: '100svh', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', background: 'var(--bg)', padding: 24,
-        }}>
-            <div style={{
-                background: '#fff', borderRadius: 'var(--radius-lg)', padding: '48px 40px',
-                boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth: 400,
-            }}>
-                <div style={{ textAlign: 'center', marginBottom: 32 }}>
-                    <div style={{ fontSize: 40, marginBottom: 8 }}>✈️</div>
-                    <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px', letterSpacing: -0.5 }}>
-                        TripsGuide Admin
-                    </h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: 0 }}>
-                        Влез с администраторски акаунт
-                    </p>
-                </div>
+        <View minHeight="100svh" align="center" justify="center" backgroundColor="neutral-faded" padding={6}>
+            <View shadow="overlay" padding={10} borderRadius="large" backgroundColor="elevation-raised">
+                <View align="center" gap={2} attributes={{ style: { marginBottom: 32 } }}>
+                    <Text variant="title-5" weight="bold">TripsGuide Admin</Text>
+                </View>
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <div className="filter-group">
-                        <label className="filter-label">Email</label>
-                        <input
-                            className="filter-input"
-                            type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            placeholder="vasil@solvex.bg"
-                            required
-                            autoFocus
-                        />
-                    </div>
-                    <div className="filter-group">
-                        <label className="filter-label">Парола</label>
-                        <input
-                            className="filter-input"
-                            type="password"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            required
-                        />
-                    </div>
-
-                    {error && (
-                        <div style={{
-                            background: '#fff5f5', border: '1px solid #fed7d7',
-                            borderRadius: 'var(--radius-sm)', padding: '10px 14px',
-                            color: '#c53030', fontSize: 14,
-                        }}>
-                            ⚠️ {error}
-                        </div>
-                    )}
-
-                    <button
-                        type="submit"
-                        className="btn btn-primary"
-                        disabled={loading}
-                        style={{ justifyContent: 'center', padding: '14px', fontSize: 15, marginTop: 4 }}
-                    >
-                        {loading ? 'Зареждане…' : 'Влез'}
-                    </button>
+                <form onSubmit={handleSubmit}>
+                    <View gap={4}>
+                        <View gap={1}>
+                            <Text variant="caption-1" weight="bold" color="neutral-faded" attributes={{ style: { textTransform: 'uppercase', letterSpacing: '.5px' } }}>Email</Text>
+                            <input className="filter-input" type="email" placeholder="vasil@solvex.bg" value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
+                        </View>
+                        <View gap={1}>
+                            <Text variant="caption-1" weight="bold" color="neutral-faded" attributes={{ style: { textTransform: 'uppercase', letterSpacing: '.5px' } }}>Парола</Text>
+                            <input className="filter-input" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
+                        </View>
+                        {error && <Alert color="critical">⚠️ {error}</Alert>}
+                        <Button type="submit" variant="solid" color="primary" fullWidth loading={loading}>
+                            Влез
+                        </Button>
+                    </View>
                 </form>
-            </div>
-        </div>
+            </View>
+        </View>
     )
 }
