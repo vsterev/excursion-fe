@@ -122,7 +122,7 @@ export function RepresentativeCompact({ rep }: { rep: RepresentativeDto }) {
                             )}
                         </View>
                         <Hidden hide={{ s: true, m: false }}>
-                            <View direction="column" gap={2}>
+                            <View direction="column" gap={2} maxWidth="60%">
                                 {rep.languages?.length ? (
                                     <View direction="row" gap={3}>
                                         {rep.languages.map((l) => (
@@ -132,7 +132,7 @@ export function RepresentativeCompact({ rep }: { rep: RepresentativeDto }) {
                                         ))}
                                     </View>
                                 ) : null}
-                                <View direction="row" gap={2}>
+                                <View direction="row" gap={2} wrap>
                                     {rep.resorts.map((r) => (
                                         <Badge key={r.id} variant={badgeVariant} color="primary" size="large">
                                             {r.name}
