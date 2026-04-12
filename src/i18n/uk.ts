@@ -8,6 +8,7 @@ const uk = {
     aboutUs: 'Про нас',
     openMenu: 'Відкрити меню',
     closeMenu: 'Закрити меню',
+    chooseLanguage: 'Змінити мову',
   },
   seo: {
     homeTitle: 'Екскурсії та представники — болгарське узбережжя Чорного моря (Solvex)',
@@ -206,7 +207,6 @@ const uk = {
   },
   common: {
     all: 'Усі',
-    bgn: 'BGN',
     save: 'Зберегти',
     cancel: 'Скасувати',
     delete: 'Видалити',
