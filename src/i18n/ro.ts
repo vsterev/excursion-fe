@@ -206,7 +206,6 @@ const ro = {
   },
   common: {
     all: 'Toate',
-    bgn: 'BGN',
     save: 'Salvează',
     cancel: 'Anulează',
     delete: 'Șterge',

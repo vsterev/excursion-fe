@@ -208,7 +208,6 @@ const ru = {
   },
   common: {
     all: 'Все',
-    bgn: 'BGN',
     save: 'Сохранить',
     cancel: 'Отмена',
     delete: 'Удалить',

@@ -206,7 +206,6 @@ const en = {
   },
   common: {
     all: 'All',
-    bgn: 'BGN',
     save: 'Save',
     cancel: 'Cancel',
     delete: 'Delete',

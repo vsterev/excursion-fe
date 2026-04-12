@@ -1,11 +1,17 @@
 import { useTranslation } from 'react-i18next'
 import { Button, Select, Hidden, Tooltip, View } from 'reshaped'
+import type { ComponentType, SVGProps } from 'react'
+import { FlagGb, FlagRo, FlagUa, FlagRu } from './LanguageFlagSvgs'
 
-const LANGS = [
-  { code: 'en', label: 'EN', flag: '🇬🇧' },
-  { code: 'ro', label: 'RO', flag: '🇷🇴' },
-  { code: 'uk', label: 'UK', flag: '🇺🇦' },
-  { code: 'ru', label: 'RU', flag: '🇷🇺' },
+type LangCode = 'en' | 'ro' | 'uk' | 'ru'
+
+type FlagComponent = ComponentType<SVGProps<SVGSVGElement>>
+
+const LANGS: { code: LangCode; label: string; Flag: FlagComponent }[] = [
+  { code: 'en', label: 'EN', Flag: FlagGb },
+  { code: 'ro', label: 'RO', Flag: FlagRo },
+  { code: 'uk', label: 'UK', Flag: FlagUa },
+  { code: 'ru', label: 'RU', Flag: FlagRu },
 ]
 
 export function LanguageSwitcher() {
@@ -22,7 +28,9 @@ export function LanguageSwitcher() {
           variant='outline'
           size='medium'>
           {LANGS.map((l) => (
-            <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
+            <option key={l.code} value={l.code}>
+              {l.label}
+            </option>
           ))}
         </Select>
       </Hidden>
@@ -37,7 +45,7 @@ export function LanguageSwitcher() {
                 highlighted={current === l.code}
                 onClick={() => i18n.changeLanguage(l.code)}
               >
-                {l.flag}
+                <l.Flag style={{ display: 'block' }} />
               </Button>
             }
 

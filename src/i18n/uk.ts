@@ -206,7 +206,6 @@ const uk = {
   },
   common: {
     all: 'Усі',
-    bgn: 'BGN',
     save: 'Зберегти',
     cancel: 'Скасувати',
     delete: 'Видалити',
