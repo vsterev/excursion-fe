@@ -70,7 +70,7 @@ export function HomePage() {
                                 {t('home.title').split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}
                             </Text>
                             <Text variant="body-2" attributes={{ style: { color: 'rgba(255,255,255,.85)', marginBottom: 20, maxWidth: 480 } }}>
-                                {t('home.subtitle')}
+                                {t('home.subtitle')}vasko
                             </Text>
                         </View>
                     </Hidden>
