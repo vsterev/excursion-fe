@@ -11,7 +11,7 @@ type FlagComponent = ComponentType<SVGProps<SVGSVGElement>>
 const LANGS: { code: LangCode; label: string; Flag: FlagComponent }[] = [
   { code: 'en', label: 'EN', Flag: FlagGb },
   { code: 'ro', label: 'RO', Flag: FlagRo },
-  { code: 'uk', label: 'UK', Flag: FlagUa },
+  { code: 'uk', label: 'UA', Flag: FlagUa },
   { code: 'ru', label: 'RU', Flag: FlagRu },
 ]
 
