@@ -1,13 +1,16 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useAuth } from '../../AuthContext'
 import {
-    adminListRepresentatives, adminCreateRepresentative,
-    adminUpdateRepresentative, adminDeleteRepresentative,
+    adminListRepresentatives,
+    adminCreateRepresentative,
+    adminUpdateRepresentative,
+    adminDeleteRepresentative,
+    adminListResorts,
 } from '../../adminApi'
 import { ImageUploader } from '../../components/ImageUploader'
-import { resolvePhotoUrl, fetchResorts, type ResortDto } from '../../api'
+import { resolvePhotoUrl, type ResortDto } from '../../api'
 import { View, Text, Button, Loader, Avatar, TextField, TextArea, Table, Divider, Grid, Badge, Autocomplete, Dismissible, FormControl, CheckboxGroup, Checkbox } from 'reshaped'
-import { useAdminToast, unknownErrorMessage } from '../../hooks/useAdminToast'
+import { useAdminToast } from '../../hooks/useAdminToast'
 
 function emptyForm() {
     return {
@@ -58,7 +61,7 @@ function parseHotelsInput(s: string): string[] {
 
 export function AdminRepresentativesPage() {
     const { token } = useAuth()
-    const { toastSuccess, toastError } = useAdminToast()
+    const { toastSuccess, toastApiError } = useAdminToast()
     const [rows, setRows] = useState<RepRow[]>([])
     const [loading, setLoading] = useState(true)
     const [form, setForm] = useState(emptyForm)
@@ -69,17 +72,22 @@ export function AdminRepresentativesPage() {
     const [resortQuery, setResortQuery] = useState('')
 
     useEffect(() => {
-        fetchResorts().then(setResortOptions).catch(() => { setResortOptions([]) })
-    }, [])
+        if (!token) return
+        adminListResorts(token)
+            .then((rows) => setResortOptions(rows.map((r) => ({ id: r.id, name: r.name }))))
+            .catch(() => {
+                setResortOptions([])
+            })
+    }, [token])
 
     const load = useCallback(() => {
         if (!token) return
         setLoading(true)
         adminListRepresentatives(token)
             .then(d => setRows(d as RepRow[]))
-            .catch((e: unknown) => toastError(unknownErrorMessage(e), 'Неуспешно зареждане'))
+            .catch((e: unknown) => toastApiError(e, 'Неуспешно зареждане'))
             .finally(() => setLoading(false))
-    }, [token, toastError])
+    }, [token, toastApiError])
 
 
 
@@ -167,7 +175,7 @@ export function AdminRepresentativesPage() {
             }
             closeForm(); load()
         } catch (e: unknown) {
-            toastError(unknownErrorMessage(e), 'Запазването не бе успешно')
+            toastApiError(e, 'Запазването не бе успешно')
         } finally { setSaving(false) }
     }
 
@@ -178,7 +186,7 @@ export function AdminRepresentativesPage() {
             toastSuccess('Представителят е изтрит.')
             load()
         } catch (e: unknown) {
-            toastError(unknownErrorMessage(e), 'Изтриването не бе успешно')
+            toastApiError(e, 'Изтриването не бе успешно')
         }
     }
 

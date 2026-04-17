@@ -8,6 +8,12 @@ function seoForPath(pathname: string): { titleKey: string; descKey: string } {
     if (pathname === '/excursions') {
         return { titleKey: 'seo.excursionsTitle', descKey: 'seo.excursionsDescription' }
     }
+    if (pathname === '/resorts') {
+        return { titleKey: 'seo.resortsTitle', descKey: 'seo.resortsDescription' }
+    }
+    if (pathname.startsWith('/resorts/')) {
+        return { titleKey: 'seo.resortDetailTitle', descKey: 'seo.resortDetailDescription' }
+    }
     if (pathname.startsWith('/excursions/')) {
         return {
             titleKey: 'seo.excursionDetailTitle',
