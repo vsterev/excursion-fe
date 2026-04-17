@@ -1,7 +1,12 @@
 import { useCallback } from 'react'
 import { useToast } from 'reshaped'
+import { AdminSessionExpiredError } from '../adminApi'
 
 const POSITION = 'bottom-end' as const
+
+export function isAdminSessionExpired(e: unknown): boolean {
+    return e instanceof AdminSessionExpiredError
+}
 
 export function unknownErrorMessage(e: unknown): string {
     if (e instanceof Error && e.message) return e.message
@@ -41,5 +46,13 @@ export function useAdminToast() {
         [show],
     )
 
-    return { toastSuccess, toastError }
+    const toastApiError = useCallback(
+        (e: unknown, title: string) => {
+            if (isAdminSessionExpired(e)) return
+            toastError(unknownErrorMessage(e), title)
+        },
+        [toastError],
+    )
+
+    return { toastSuccess, toastError, toastApiError }
 }

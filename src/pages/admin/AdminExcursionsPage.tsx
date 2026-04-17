@@ -1,13 +1,16 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useAuth } from '../../AuthContext'
 import {
-    adminListExcursions, adminCreateExcursion,
-    adminUpdateExcursion, adminDeleteExcursion,
+    adminListExcursions,
+    adminCreateExcursion,
+    adminUpdateExcursion,
+    adminDeleteExcursion,
+    adminListResorts,
 } from '../../adminApi'
-import { fetchResorts, type ResortDto } from '../../api'
+import { type ResortDto } from '../../api'
 import { ImageUploader } from '../../components/ImageUploader'
 import { View, Text, Button, Loader, Badge, TextField, TextArea, Table, Divider, Grid, FormControl, Autocomplete, Dismissible } from 'reshaped'
-import { useAdminToast, unknownErrorMessage } from '../../hooks/useAdminToast'
+import { useAdminToast } from '../../hooks/useAdminToast'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 
@@ -16,7 +19,7 @@ const QUILL_MODULES = {
         [{ header: [2, 3, false] }],
         ['bold', 'italic', 'underline'],
         [{ list: 'ordered' }, { list: 'bullet' }],
-        ['link'],
+        ['link', 'image'],
         ['clean'],
     ],
 }
@@ -42,7 +45,7 @@ interface ExcursionRow {
 
 export function AdminExcursionsPage() {
     const { token } = useAuth()
-    const { toastSuccess, toastError } = useAdminToast()
+    const { toastSuccess, toastApiError } = useAdminToast()
     const [rows, setRows] = useState<ExcursionRow[]>([])
     const [loading, setLoading] = useState(true)
     const [form, setForm] = useState(emptyForm)
@@ -53,8 +56,11 @@ export function AdminExcursionsPage() {
     const [resortQuery, setResortQuery] = useState('')
 
     useEffect(() => {
-        fetchResorts().then(setResortOptions).catch(() => setResortOptions([]))
-    }, [])
+        if (!token) return
+        adminListResorts(token)
+            .then((rows) => setResortOptions(rows.map((r) => ({ id: r.id, name: r.name }))))
+            .catch(() => setResortOptions([]))
+    }, [token])
 
 
     const load = useCallback(() => {
@@ -62,9 +68,9 @@ export function AdminExcursionsPage() {
         setLoading(true)
         adminListExcursions(token)
             .then(d => setRows(d as ExcursionRow[]))
-            .catch((e: unknown) => toastError(unknownErrorMessage(e), 'Неуспешно зареждане'))
+            .catch((e: unknown) => toastApiError(e, 'Неуспешно зареждане'))
             .finally(() => setLoading(false))
-    }, [token, toastError])
+    }, [token, toastApiError])
 
     useEffect(() => { load() }, [load])
 
@@ -139,7 +145,7 @@ export function AdminExcursionsPage() {
             }
             closeForm(); load()
         } catch (e: unknown) {
-            toastError(unknownErrorMessage(e), 'Запазването не бе успешно')
+            toastApiError(e, 'Запазването не бе успешно')
         } finally { setSaving(false) }
     }
 
@@ -150,7 +156,7 @@ export function AdminExcursionsPage() {
             toastSuccess('Екскурзията е изтрита.')
             load()
         } catch (e: unknown) {
-            toastError(unknownErrorMessage(e), 'Изтриването не бе успешно')
+            toastApiError(e, 'Изтриването не бе успешно')
         }
     }
 
@@ -250,7 +256,11 @@ export function AdminExcursionsPage() {
                             </Grid>
                             <View gap={1}>
                                 <FormControl.Label>Description (English) *</FormControl.Label>
-                                <FormControl.Helper>Запазване → автоматичен превод към румънски, молдовски и украински.</FormControl.Helper>
+                                <FormControl.Helper>
+                                    Запазване → автоматичен превод към румънски, руски и украински. Можеш да вмъкнеш линк или
+                                    снимка (Link / Image) с URL-а от „Качи снимка“ — относителният път `/uploads/...` се
+                                    показва правилно на сайта.
+                                </FormControl.Helper>
                                 <ReactQuill
                                     theme="snow"
                                     value={form.description}

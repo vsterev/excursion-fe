@@ -70,7 +70,7 @@ export function HomePage() {
                                 {t('home.title').split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}
                             </Text>
                             <Text variant="body-2" attributes={{ style: { color: 'rgba(255,255,255,.85)', marginBottom: 20, maxWidth: 480 } }}>
-                                {t('home.subtitle')}vasko
+                                {t('home.subtitle')}
                             </Text>
                         </View>
                     </Hidden>
@@ -79,9 +79,9 @@ export function HomePage() {
             </View>
 
             <View maxWidth="1200px" width="100%" paddingInline={{ s: 4, m: 6 }} paddingBlock={8} align="center" grow justify="center" attributes={{ style: { margin: '0 auto' } }}>
-                {/* About + representatives — same row (large screens), same card style */}
-                <Grid columns={{ s: 1, m: 2 }} gap={4} align="stretch">
-                    <Link to="/about" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+                {/* Excursions, resorts, representatives — same row on large screens */}
+                <Grid columns={{ s: 1, m: 3 }} gap={4} align="stretch">
+                    <Link to="/excursions" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
                         <View
                             shadow="overlay"
                             padding={5}
@@ -89,14 +89,11 @@ export function HomePage() {
                             backgroundColor="primary-faded"
                             height="100%"
                         >
-                            <View direction="row" align="center" gap={4}>
-                                <Text attributes={{ style: { fontSize: 32, lineHeight: 1 } }}>🏢</Text>
+                            <View direction={{ s: 'row', m: 'column' }} align="start" gap={4}>
+                                <Text attributes={{ style: { fontSize: 32, lineHeight: 1 } }}>🗺️</Text>
                                 <View>
-                                    <Text variant="body-1" weight="bold">{t('home.aboutSectionTitle')}</Text>
-                                    <Text variant="body-3" color="neutral-faded">{t('home.aboutSectionSubtitle')}</Text>
-                                    <Text variant="caption-1" color="neutral-faded" attributes={{ style: { marginTop: 6 } }}>
-                                        {t('home.aboutSectionCta')}
-                                    </Text>
+                                    <Text variant="body-1" weight="bold">{t('home.excursionsCardTitle')}</Text>
+                                    <Text variant="body-3" color="neutral-faded">{t('home.excursionsCardSubtitle')}</Text>
                                 </View>
                             </View>
                         </View>
@@ -109,11 +106,29 @@ export function HomePage() {
                             backgroundColor="primary-faded"
                             height="100%"
                         >
-                            <View direction="row" align="center" gap={4}>
+                            <View direction={{ s: 'row', m: 'column' }} align="start" gap={4}>
                                 <Text attributes={{ style: { fontSize: 32, lineHeight: 1 } }}>👥</Text>
                                 <View>
                                     <Text variant="body-1" weight="bold">{t('home.repsTitle')}</Text>
                                     <Text variant="body-3" color="neutral-faded">{t('home.repsDesc')}</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </Link>
+                    <Link to="/resorts" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+                        <View
+                            shadow="overlay"
+                            padding={5}
+                            borderRadius="medium"
+                            backgroundColor="primary-faded"
+                            height="100%"
+                        >
+                            <View direction={{ s: 'row', m: 'column' }} align="start" gap={4} shrink>
+                                <Text attributes={{ style: { fontSize: 32, lineHeight: 1 } }}>🏖️</Text>
+                                <View>
+                                    <Text variant="body-1" weight="bold">{t('home.resortsTitle')}</Text>
+                                    <Text variant="body-3" color="neutral-faded">{t('home.resortsDesc')}</Text>
+
                                 </View>
                             </View>
                         </View>

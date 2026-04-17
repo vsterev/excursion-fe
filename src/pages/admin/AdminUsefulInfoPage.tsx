@@ -6,7 +6,7 @@ import {
 } from '../../adminApi'
 import { ImageUploader } from '../../components/ImageUploader'
 import { View, Text, Button, Loader, Badge, TextField, TextArea, Table, Divider, Grid } from 'reshaped'
-import { useAdminToast, unknownErrorMessage } from '../../hooks/useAdminToast'
+import { useAdminToast } from '../../hooks/useAdminToast'
 
 const EMPTY = { resort: '', category: '', title: '', content: '', url: '' }
 
@@ -21,7 +21,7 @@ interface InfoRow {
 
 export function AdminUsefulInfoPage() {
     const { token } = useAuth()
-    const { toastSuccess, toastError } = useAdminToast()
+    const { toastSuccess, toastApiError } = useAdminToast()
     const [rows, setRows] = useState<InfoRow[]>([])
     const [loading, setLoading] = useState(true)
     const [form, setForm] = useState(EMPTY)
@@ -34,9 +34,9 @@ export function AdminUsefulInfoPage() {
         setLoading(true)
         adminListUsefulInfo(token)
             .then(d => setRows(d as InfoRow[]))
-            .catch((e: unknown) => toastError(unknownErrorMessage(e), 'Неуспешно зареждане'))
+            .catch((e: unknown) => toastApiError(e, 'Неуспешно зареждане'))
             .finally(() => setLoading(false))
-    }, [token, toastError])
+    }, [token, toastApiError])
 
     useEffect(() => { load() }, [load])
 
@@ -74,7 +74,7 @@ export function AdminUsefulInfoPage() {
             }
             setShowForm(false); load()
         } catch (e: unknown) {
-            toastError(unknownErrorMessage(e), 'Запазването не бе успешно')
+            toastApiError(e, 'Запазването не бе успешно')
         } finally { setSaving(false) }
     }
 
@@ -85,7 +85,7 @@ export function AdminUsefulInfoPage() {
             toastSuccess('Записът е изтрит.')
             load()
         } catch (e: unknown) {
-            toastError(unknownErrorMessage(e), 'Изтриването не бе успешно')
+            toastApiError(e, 'Изтриването не бе успешно')
         }
     }
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { View, Text, Grid, TextField, Button, Badge, Loader, Actionable, Select } from 'reshaped'
 import { fetchExcursions, fetchResorts, resolvePhotoUrl } from '../api'
@@ -34,6 +34,7 @@ function computeExcursionBatchLimit(viewportHeight: number, viewportWidth: numbe
 
 export function ExcursionsPage() {
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
     const { t, i18n } = useTranslation()
     const [items, setItems] = useState<ExcursionDto[]>([])
     const [hasMore, setHasMore] = useState(true)
@@ -41,7 +42,10 @@ export function ExcursionsPage() {
     const [loadingMore, setLoadingMore] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [resortOptions, setResortOptions] = useState<ResortDto[]>([])
-    const [resortFilter, setResortFilter] = useState('all')
+    const resortFilter = useMemo(() => {
+        const r = searchParams.get('resort')
+        return r && /^\d+$/.test(r) ? r : 'all'
+    }, [searchParams])
     const [q, setQ] = useState('')
     const [debouncedQ, setDebouncedQ] = useState('')
 
@@ -142,7 +146,26 @@ export function ExcursionsPage() {
 
     function clearFilters() {
         setQ('')
-        setResortFilter('all')
+        setSearchParams(
+            (prev) => {
+                const p = new URLSearchParams(prev)
+                p.delete('resort')
+                return p
+            },
+            { replace: true },
+        )
+    }
+
+    function setResortInUrl(value: string) {
+        setSearchParams(
+            (prev) => {
+                const p = new URLSearchParams(prev)
+                if (value === 'all') p.delete('resort')
+                else p.set('resort', value)
+                return p
+            },
+            { replace: true },
+        )
     }
 
     return (
@@ -174,7 +197,7 @@ export function ExcursionsPage() {
                             <Select
                                 name="resort"
                                 value={resortFilter}
-                                onChange={({ value }) => setResortFilter(value)}
+                                onChange={({ value }) => setResortInUrl(value)}
                             >
                                 <option value="all">{t('usefulInfo.allResorts')}</option>
                                 {resortOptions.map(r => (

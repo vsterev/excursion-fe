@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { View, Button, useToggle, Hidden, MenuItem, Modal, useTheme } from 'reshaped'
 import { SOLVEX_LOGO_SRC } from './branding'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
-import { Menu, Home, MapPin, Users, Building2, Sun, Moon } from 'lucide-react'
+import { Menu, Home, MapPin, Users, Building2, Sun, Moon, Palmtree } from 'lucide-react'
 
 export function AppLayout() {
     const location = useLocation()
@@ -50,6 +50,7 @@ export function AppLayout() {
                     {/* Desktop links */}
                     <Hidden hide={{ s: true, l: false }}>
                         <View direction="row" gap={3} borderRadius="medium">
+                            <MenuItem roundedCorners size='large' onClick={() => navigate("/resorts")} selected={location.pathname === '/resorts' || location.pathname.startsWith('/resorts/')}>{t('nav.resorts')}</MenuItem>
                             <MenuItem roundedCorners size='large' onClick={() => navigate("/excursions")} selected={location.pathname === '/excursions'}>{t('nav.excursions')}</MenuItem>
                             <MenuItem roundedCorners size='large' onClick={() => navigate("/representatives")} selected={location.pathname === '/representatives'}>{t('nav.representatives')}</MenuItem>
                             <MenuItem roundedCorners size='large' onClick={() => navigate("/about")} selected={location.pathname === '/about'}>{t('nav.aboutUs')}</MenuItem>
@@ -91,6 +92,7 @@ export function AppLayout() {
                     <View padding={4} gap={1} direction="column" >
                         <MenuItem roundedCorners size='large' startSlot={<Home size={18} />} onClick={() => modalNavigate("/")} selected={location.pathname === '/'}>{t('nav.home')}</MenuItem>
                         <MenuItem roundedCorners size='large' startSlot={<MapPin size={18} />} onClick={() => modalNavigate("/excursions")} selected={location.pathname === '/excursions'}>{t('nav.excursions')}</MenuItem>
+                        <MenuItem roundedCorners size='large' startSlot={<Palmtree size={18} />} onClick={() => modalNavigate("/resorts")} selected={location.pathname === '/resorts' || location.pathname.startsWith('/resorts/')}>{t('nav.resorts')}</MenuItem>
                         <MenuItem roundedCorners size='large' startSlot={<Users size={18} />} onClick={() => modalNavigate("/representatives")} selected={location.pathname === '/representatives'}>{t('nav.representatives')}</MenuItem>
                         <MenuItem roundedCorners size='large' startSlot={<Building2 size={18} />} onClick={() => modalNavigate("/about")} selected={location.pathname === '/about'}>{t('nav.aboutUs')}</MenuItem>
                     </View>

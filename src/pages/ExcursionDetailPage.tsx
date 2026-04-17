@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { View, Text, Button, Badge, Loader, Card, Grid, useTheme } from 'reshaped'
-import { fetchExcursion, fetchRepresentatives, resolvePhotoUrl } from '../api'
+import { fetchExcursion, fetchRepresentatives, resolvePhotoUrl, rewriteUploadUrlsInHtml } from '../api'
 import type { ExcursionDetailDto, RepresentativeDto } from '../api'
 import { ArrowBigLeft } from 'lucide-react'
 import { RepresentativeCompact } from './Representative'
@@ -155,7 +155,7 @@ export function ExcursionDetailPage() {
                         color="neutral-faded"
                         className="excursion-description"
                         attributes={{
-                            dangerouslySetInnerHTML: { __html: x.description },
+                            dangerouslySetInnerHTML: { __html: rewriteUploadUrlsInHtml(x.description) },
                             style: { minWidth: 0, width: '100%', lineHeight: 1.7 },
                         }}
                     />

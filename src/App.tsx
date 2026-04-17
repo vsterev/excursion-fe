@@ -6,6 +6,7 @@ import { SiteHelmet } from './components/SiteHelmet'
 import { AppLayout } from './AppLayout'
 import { AdminLayout } from './AdminLayout'
 import { AuthProvider, useAuth } from './AuthContext'
+import { AdminUnauthorizedBridge } from './AdminUnauthorizedBridge'
 
 const HomePage = lazy(() => import('./pages/HomePage').then((m) => ({ default: m.HomePage })))
 const ExcursionsPage = lazy(() => import('./pages/ExcursionsPage').then((m) => ({ default: m.ExcursionsPage })))
@@ -20,6 +21,10 @@ const RepresentativeDetailPage = lazy(() =>
 )
 const UsefulInfoPage = lazy(() => import('./pages/UsefulInfoPage').then((m) => ({ default: m.UsefulInfoPage })))
 const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })))
+const ResortsPage = lazy(() => import('./pages/ResortsPage').then((m) => ({ default: m.ResortsPage })))
+const ResortDetailPage = lazy(() =>
+  import('./pages/ResortDetailPage').then((m) => ({ default: m.ResortDetailPage })),
+)
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })))
 const AdminExcursionsPage = lazy(() =>
   import('./pages/admin/AdminExcursionsPage').then((m) => ({ default: m.AdminExcursionsPage })),
@@ -29,6 +34,9 @@ const AdminRepresentativesPage = lazy(() =>
 )
 const AdminUsefulInfoPage = lazy(() =>
   import('./pages/admin/AdminUsefulInfoPage').then((m) => ({ default: m.AdminUsefulInfoPage })),
+)
+const AdminResortsPage = lazy(() =>
+  import('./pages/admin/AdminResortsPage').then((m) => ({ default: m.AdminResortsPage })),
 )
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 
@@ -53,6 +61,8 @@ function AppRoutes() {
         <Route path="/" element={<HomePage />} />
         <Route path="/excursions" element={<ExcursionsPage />} />
         <Route path="/excursions/:id" element={<ExcursionDetailPage />} />
+        <Route path="/resorts" element={<ResortsPage />} />
+        <Route path="/resorts/:id" element={<ResortDetailPage />} />
         <Route path="/representatives" element={<RepresentativesPage />} />
         <Route path="/representatives/:id" element={<RepresentativeDetailPage />} />
         {/* Public useful-info: not linked in nav/home for now; URL + admin CRUD remain for later use */}
@@ -70,6 +80,7 @@ function AppRoutes() {
         <Route path="excursions" element={<AdminExcursionsPage />} />
         <Route path="representatives" element={<AdminRepresentativesPage />} />
         <Route path="useful-info" element={<AdminUsefulInfoPage />} />
+        <Route path="resorts" element={<AdminResortsPage />} />
       </Route>
     </Routes>
   )
@@ -81,6 +92,7 @@ export default function App() {
       <BrowserRouter>
         <SiteHelmet />
         <AuthProvider>
+          <AdminUnauthorizedBridge />
           <Suspense fallback={<RouteFallback />}>
             <AppRoutes />
           </Suspense>

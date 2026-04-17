@@ -2,6 +2,14 @@ import { notifyAdminUnauthorized } from './adminSession'
 
 const API = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4010'
 
+/** Хвърля се след 401 — UI не показва toast, само изход и пренасочване към логин. */
+export class AdminSessionExpiredError extends Error {
+    override name = 'AdminSessionExpiredError'
+    constructor() {
+        super('SESSION_EXPIRED')
+    }
+}
+
 async function readApiError(res: Response): Promise<string> {
     const fallback = `${res.status} ${res.statusText}`
     const raw = await res.text()
@@ -28,14 +36,17 @@ async function req<T>(method: string, path: string, token: string, body?: unknow
         body: body ? JSON.stringify(body) : undefined,
     })
     if (!res.ok) {
-        if (res.status === 401) notifyAdminUnauthorized()
+        if (res.status === 401) {
+            notifyAdminUnauthorized()
+            throw new AdminSessionExpiredError()
+        }
         throw new Error(await readApiError(res))
     }
     return res.status === 204 ? (undefined as T) : (res.json() as Promise<T>)
 }
 
 // ── File Upload ────────────────────────────────
-export type UploadCategory = 'excursions' | 'representatives' | 'homepage'
+export type UploadCategory = 'excursions' | 'representatives' | 'homepage' | 'resorts'
 
 export async function uploadFile(
     token: string,
@@ -44,13 +55,17 @@ export async function uploadFile(
 ): Promise<string> {
     const fd = new FormData()
     fd.append('file', file)
-    const res = await fetch(`${API}/api/upload/${category}`, {
+    const qs = `?category=${encodeURIComponent(category)}`
+    const res = await fetch(`${API}/api/upload${qs}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
     })
     if (!res.ok) {
-        if (res.status === 401) notifyAdminUnauthorized()
+        if (res.status === 401) {
+            notifyAdminUnauthorized()
+            throw new AdminSessionExpiredError()
+        }
         throw new Error(await readApiError(res))
     }
     const data = await res.json() as { url: string }
@@ -75,3 +90,17 @@ export const adminListUsefulInfo = (t: string) => req<unknown[]>('GET', '/admin/
 export const adminCreateUsefulInfo = (t: string, body: unknown) => req<{ id: string }>('POST', '/admin/useful-info', t, body)
 export const adminUpdateUsefulInfo = (t: string, id: string, body: unknown) => req<{ ok: boolean }>('PUT', `/admin/useful-info/${id}`, t, body)
 export const adminDeleteUsefulInfo = (t: string, id: string) => req<{ ok: boolean }>('DELETE', `/admin/useful-info/${id}`, t)
+
+// ── Resorts ─────────────────────────────────────
+export type AdminResortRow = {
+    id: number
+    name: string
+    description: string
+    photos: { id: string; url: string; caption: string | null; order: number }[]
+}
+
+export const adminListResorts = (t: string) => req<AdminResortRow[]>('GET', '/admin/resorts', t)
+export const adminCreateResort = (t: string, body: unknown) => req<{ id: number }>('POST', '/admin/resorts', t, body)
+export const adminUpdateResort = (t: string, id: number, body: unknown) =>
+    req<{ ok: boolean }>('PUT', `/admin/resorts/${id}`, t, body)
+export const adminDeleteResort = (t: string, id: number) => req<{ ok: boolean }>('DELETE', `/admin/resorts/${id}`, t)

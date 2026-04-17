@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { View, Text, Button, TextField, Select, Loader } from 'reshaped'
 import { fetchRepresentatives, fetchResorts } from '../api'
@@ -15,9 +16,13 @@ type LoadState =
 
 export function RepresentativesPage() {
     const { t } = useTranslation()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [state, setState] = useState<LoadState>({ status: 'loading' })
     const [resortOptions, setResortOptions] = useState<ResortDto[]>([])
-    const [resortFilter, setResortFilter] = useState('all') // 'all' or resort id as string
+    const resortFilter = useMemo(() => {
+        const r = searchParams.get('resort')
+        return r && /^\d+$/.test(r) ? r : 'all'
+    }, [searchParams])
     const [languageFilter, setLanguageFilter] = useState('all')
     const [q, setQ] = useState('')
 
@@ -80,7 +85,17 @@ export function RepresentativesPage() {
                         <Select
                             name="resort"
                             value={resortFilter}
-                            onChange={({ value }) => setResortFilter(value)}
+                            onChange={({ value }) => {
+                                setSearchParams(
+                                    (prev) => {
+                                        const p = new URLSearchParams(prev)
+                                        if (value === 'all') p.delete('resort')
+                                        else p.set('resort', value)
+                                        return p
+                                    },
+                                    { replace: true },
+                                )
+                            }}
                         >
                             <option value="all">{t('usefulInfo.allResorts')}</option>
                             {resortOptions.map((r: ResortDto) => (
@@ -106,8 +121,15 @@ export function RepresentativesPage() {
                             color="primary"
                             onClick={() => {
                                 setQ('')
-                                setResortFilter('all')
                                 setLanguageFilter('all')
+                                setSearchParams(
+                                    (prev) => {
+                                        const p = new URLSearchParams(prev)
+                                        p.delete('resort')
+                                        return p
+                                    },
+                                    { replace: true },
+                                )
                             }}
                         >
                             ✕

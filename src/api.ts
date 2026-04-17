@@ -29,6 +29,14 @@ export type ExcursionsListResponse = {
 export type ResortDto = {
     id: number
     name: string
+    coverPhoto?: string | null
+}
+
+export type ResortDetailDto = {
+    id: number
+    name: string
+    description: string
+    photos: ExcursionPhotoDto[]
 }
 
 /** Публичен списък/детайл — синхрон с RepresentativesController на бекенда */
@@ -66,6 +74,19 @@ export function resolvePhotoUrl(url: string | null | undefined): string | null {
     if (!url) return null
     if (url.startsWith('http://') || url.startsWith('https://')) return url
     return `${API_ORIGIN}${url}`
+}
+
+/**
+ * Rich text от админа често съдържа `src="/uploads/..."` или `href="/uploads/..."`.
+ * На публичния сайт те трябва да сочат към API origin, иначе браузърът ги тъси на домейна на фронтенда.
+ */
+export function rewriteUploadUrlsInHtml(html: string): string {
+    if (!html) return html
+    const base = API_ORIGIN.replace(/\/$/, '')
+    return html.replace(
+        /(src|href)=(["'])(\/uploads\/[^"']+)\2/gi,
+        (_m, attr: string, quote: string, path: string) => `${attr}=${quote}${base}${path}${quote}`
+    )
 }
 
 function lang() {
@@ -111,7 +132,11 @@ export const fetchRepresentatives = (params?: {
     return apiFetch<RepresentativeDto[]>(`/representatives?${qs}`)
 }
 
-export const fetchResorts = (): Promise<ResortDto[]> => apiFetch<ResortDto[]>('/resorts')
+export const fetchResorts = (): Promise<ResortDto[]> =>
+    apiFetch<ResortDto[]>(`/resorts?lang=${lang()}`)
+
+export const fetchResortDetail = (id: number): Promise<ResortDetailDto> =>
+    apiFetch<ResortDetailDto>(`/resorts/${id}?lang=${lang()}`)
 
 export const fetchRepresentative = (id: string): Promise<RepresentativeDto> =>
     apiFetch<RepresentativeDto>(`/representatives/${id}?lang=${lang()}`)

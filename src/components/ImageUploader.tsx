@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { notifyAdminUnauthorized } from '../adminSession'
 
 const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4010'
 const TOKEN_KEY = 'admin_token'
@@ -42,6 +43,10 @@ export function ImageUploader({
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
                 body: fd,
             })
+            if (res.status === 401) {
+                notifyAdminUnauthorized()
+                return
+            }
             if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
             const data = await res.json() as { url: string }
             onUploaded(data.url)

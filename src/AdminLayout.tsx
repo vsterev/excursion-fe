@@ -1,9 +1,10 @@
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import { View, Text, Button, Divider, ToastProvider, MenuItem } from 'reshaped'
 
 const NAV = [
     { to: '/admin/excursions', icon: '🗺️', label: 'Екскурзии' },
+    { to: '/admin/resorts', icon: '🏖️', label: 'Курорти' },
     { to: '/admin/representatives', icon: '👥', label: 'Представители' },
     { to: '/admin/useful-info', icon: 'ℹ️', label: 'Полезна информация' },
 ]
@@ -11,6 +12,7 @@ const NAV = [
 export function AdminLayout() {
     const { logout } = useAuth()
     const navigate = useNavigate()
+    const { pathname } = useLocation()
 
     function handleLogout() {
         logout()
@@ -42,7 +44,7 @@ export function AdminLayout() {
                                 roundedCorners
                                 size='large'
                                 onClick={() => navigate(to)}
-                                selected={location.pathname === to}
+                                selected={pathname === to}
                                 startSlot={<span style={{ fontSize: 18 }}>{icon}</span>}>
                                 {label}
                             </MenuItem>
