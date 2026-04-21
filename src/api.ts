@@ -2,7 +2,7 @@ import i18n from './i18n'
 import { normalizeQuillHtmlNbsp } from './richTextNormalize'
 
 /** Пълен базов URL на API (с `/api`), като зад nginx. */
-export const API_BASE = (import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4010/api').replace(/\/+$/, '')
+export const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://localhost:4010/api').replace(/\/+$/, '')
 
 /** Същият хост без `/api` — за `/uploads/...`. */
 export const API_ORIGIN = API_BASE.replace(/\/api$/i, '') || API_BASE
