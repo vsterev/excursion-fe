@@ -1,12 +1,11 @@
 import { notifyAdminUnauthorized } from './adminSession'
+import { API_BASE, API_ORIGIN } from './api'
 
-const API = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4010'
-
-/** Хвърля се след 401 — UI не показва toast, само изход и пренасочване към логин. */
+/** Хвърля се при 401, за да не се показва общ toast (сесията се обработва от adminSession). */
 export class AdminSessionExpiredError extends Error {
-    override name = 'AdminSessionExpiredError'
-    constructor() {
-        super('SESSION_EXPIRED')
+    constructor(message = 'Сесията изтече') {
+        super(message)
+        this.name = 'AdminSessionExpiredError'
     }
 }
 
@@ -27,7 +26,7 @@ async function readApiError(res: Response): Promise<string> {
 }
 
 async function req<T>(method: string, path: string, token: string, body?: unknown): Promise<T> {
-    const res = await fetch(`${API}/api${path}`, {
+    const res = await fetch(`${API_BASE}${path}`, {
         method,
         headers: {
             'Content-Type': 'application/json',
@@ -55,8 +54,7 @@ export async function uploadFile(
 ): Promise<string> {
     const fd = new FormData()
     fd.append('file', file)
-    const qs = `?category=${encodeURIComponent(category)}`
-    const res = await fetch(`${API}/api/upload${qs}`, {
+    const res = await fetch(`${API_BASE}/upload?category=${encodeURIComponent(category)}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
@@ -70,7 +68,7 @@ export async function uploadFile(
     }
     const data = await res.json() as { url: string }
     // Return absolute URL so <img src> works from frontend dev server
-    return `${API}${data.url}`
+    return `${API_ORIGIN}${data.url}`
 }
 
 // ── Excursions ─────────────────────────────────

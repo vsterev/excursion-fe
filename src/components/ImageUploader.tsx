@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { notifyAdminUnauthorized } from '../adminSession'
 
-const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4010'
+import { API_BASE } from '../api'
 const TOKEN_KEY = 'admin_token'
 
 interface Props {
@@ -38,7 +38,7 @@ export function ImageUploader({
             // category passed as query param — req.body is not yet available when
             // multer's destination() runs, but req.query is
             const qs = category ? `?category=${encodeURIComponent(category)}` : ''
-            const res = await fetch(`${API_ORIGIN}/api/upload${qs}`, {
+            const res = await fetch(`${API_BASE}/upload${qs}`, {
                 method: 'POST',
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
                 body: fd,

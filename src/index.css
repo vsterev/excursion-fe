@@ -227,7 +227,20 @@ body { margin: 0; }
 }
 
 /* ── Quill editor in admin ──────────────────── */
-.ql-editor { min-height: 180px; font-family: inherit; font-size: 14px; }
+/*
+ * Quill по подразбиране ползва white-space: pre-wrap + word-wrap: break-word.
+ * Дефисът (U+002D) е допустима точка за пренасяне → частта след "-" често пада на нов ред
+ * дори с място на реда. normal + word-break: normal намалява това; списъци са от toolbar.
+ */
+.ql-editor {
+  min-height: 180px;
+  font-family: inherit;
+  font-size: 14px;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
+}
 .ql-toolbar.ql-snow { border-radius: 8px 8px 0 0; border-color: var(--border); }
 .ql-container.ql-snow { border-radius: 0 0 8px 8px; border-color: var(--border); }
 

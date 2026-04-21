@@ -1,4 +1,11 @@
 import i18n from './i18n'
+import { normalizeQuillHtmlNbsp } from './richTextNormalize'
+
+/** Пълен базов URL на API (с `/api`), като зад nginx. */
+export const API_BASE = (import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4010/api').replace(/\/+$/, '')
+
+/** Същият хост без `/api` — за `/uploads/...`. */
+export const API_ORIGIN = API_BASE.replace(/\/api$/i, '') || API_BASE
 
 export type ExcursionPhotoDto = {
     id: string
@@ -63,9 +70,6 @@ export type UsefulInfoDto = {
     url: string | null
 }
 
-// Backend base URL (without /api). Example: http://localhost:4010
-export const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4010'
-
 /**
  * Converts a photoUrl to an absolute URL.
  * Handles both legacy absolute URLs (http://...) and new relative paths (/uploads/...).
@@ -80,10 +84,11 @@ export function resolvePhotoUrl(url: string | null | undefined): string | null {
  * Rich text от админа често съдържа `src="/uploads/..."` или `href="/uploads/..."`.
  * На публичния сайт те трябва да сочат към API origin, иначе браузърът ги тъси на домейна на фронтенда.
  */
-export function rewriteUploadUrlsInHtml(html: string): string {
-    if (!html) return html
+export function rewriteUploadUrlsInHtml(html: string | null | undefined): string {
+    const normalized = normalizeQuillHtmlNbsp(html)
+    if (normalized === '') return ''
     const base = API_ORIGIN.replace(/\/$/, '')
-    return html.replace(
+    return normalized.replace(
         /(src|href)=(["'])(\/uploads\/[^"']+)\2/gi,
         (_m, attr: string, quote: string, path: string) => `${attr}=${quote}${base}${path}${quote}`
     )
@@ -94,7 +99,7 @@ function lang() {
 }
 
 async function apiFetch<T>(path: string): Promise<T> {
-    const res = await fetch(`${API_ORIGIN}/api${path}`)
+    const res = await fetch(`${API_BASE}${path}`)
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
     return res.json() as Promise<T>
 }

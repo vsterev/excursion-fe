@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { View, Text, Button, Loader, Card, useTheme } from 'reshaped'
 import { fetchResortDetail, resolvePhotoUrl, rewriteUploadUrlsInHtml } from '../api'
+import { normalizeQuillHtmlNbsp } from '../richTextNormalize'
 import type { ResortDetailDto } from '../api'
 import { ArrowBigLeft } from 'lucide-react'
 
@@ -94,7 +95,7 @@ export function ResortDetailPage() {
     const photos = x.photos ?? []
     const mainSrc = photos[activePhoto] ? resolvePhotoUrl(photos[activePhoto].url) : null
     const pageTitle = `${x.name} — ${t('nav.resorts')}`
-    const metaDesc = stripHtml(x.description).slice(0, 158)
+    const metaDesc = stripHtml(normalizeQuillHtmlNbsp(x.description)).slice(0, 158)
 
     return (
         <>

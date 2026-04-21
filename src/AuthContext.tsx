@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 
-const API = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:4010'
+import { API_BASE } from './api'
 const TOKEN_KEY = 'admin_token'
 
 interface AuthCtx {
@@ -16,7 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
 
     const login = useCallback(async (email: string, password: string) => {
-        const res = await fetch(`${API}/api/auth/login`, {
+        const res = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
