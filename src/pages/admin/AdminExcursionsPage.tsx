@@ -8,21 +8,13 @@ import {
     adminListResorts,
 } from '../../adminApi'
 import { type ResortDto } from '../../api'
+import { normalizeQuillHtmlNbsp } from '../../richTextNormalize'
 import { ImageUploader } from '../../components/ImageUploader'
 import { View, Text, Button, Loader, Badge, TextField, TextArea, Table, Divider, Grid, FormControl, Autocomplete, Dismissible } from 'reshaped'
 import { useAdminToast } from '../../hooks/useAdminToast'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
-
-const QUILL_MODULES = {
-    toolbar: [
-        [{ header: [2, 3, false] }],
-        ['bold', 'italic', 'underline'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['link', 'image'],
-        ['clean'],
-    ],
-}
+import { ADMIN_QUILL_MODULES } from '../../adminQuillModules'
 
 function emptyForm() {
     return {
@@ -107,7 +99,7 @@ export function AdminExcursionsPage() {
             ...emptyForm(),
             resortIds: (row.departures ?? []).map((s) => Number(s.id)).filter(Number.isFinite),
             destination: row.destination,
-            description: row.description,
+            description: normalizeQuillHtmlNbsp(row.description),
             price: row.price != null ? String(row.price) : '',
             photos: (row.photos ?? []).map(p => p.url).join('\n'),
         })
@@ -131,7 +123,7 @@ export function AdminExcursionsPage() {
         const body = {
             resortIds: form.resortIds,
             destination: form.destination,
-            description: form.description,
+            description: normalizeQuillHtmlNbsp(form.description),
             price,
             photos: photoUrls.map((url, i) => ({ url, order: i })),
         }
@@ -262,10 +254,13 @@ export function AdminExcursionsPage() {
                                     показва правилно на сайта.
                                 </FormControl.Helper>
                                 <ReactQuill
+                                    key={editId ?? 'new-excursion'}
                                     theme="snow"
-                                    value={form.description}
-                                    onChange={(value) => setForm(f => ({ ...f, description: value }))}
-                                    modules={QUILL_MODULES}
+                                    value={form.description ?? ''}
+                                    onChange={(value) =>
+                                        setForm((f) => ({ ...f, description: value ?? '' }))
+                                    }
+                                    modules={ADMIN_QUILL_MODULES}
                                     placeholder="Excursion description in English…"
                                     style={{ minHeight: 200 }}
                                 />

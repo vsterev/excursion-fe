@@ -7,21 +7,13 @@ import {
     adminDeleteResort,
     type AdminResortRow,
 } from '../../adminApi'
+import { normalizeQuillHtmlNbsp } from '../../richTextNormalize'
 import { ImageUploader } from '../../components/ImageUploader'
 import { View, Text, Button, Loader, TextField, Table, Divider, FormControl } from 'reshaped'
 import { useAdminToast } from '../../hooks/useAdminToast'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
-
-const QUILL_MODULES = {
-    toolbar: [
-        [{ header: [2, 3, false] }],
-        ['bold', 'italic', 'underline'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['link', 'image'],
-        ['clean'],
-    ],
-}
+import { ADMIN_QUILL_MODULES } from '../../adminQuillModules'
 
 function emptyForm() {
     return { name: '', description: '', photos: '' }
@@ -57,7 +49,7 @@ export function AdminResortsPage() {
     function startEdit(row: AdminResortRow) {
         setForm({
             name: row.name,
-            description: row.description,
+            description: normalizeQuillHtmlNbsp(row.description),
             photos: (row.photos ?? []).map((p) => p.url).join('\n'),
         })
         setEditId(row.id)
@@ -76,7 +68,7 @@ export function AdminResortsPage() {
         const photoUrls = form.photos.split('\n').map((s) => s.trim()).filter(Boolean)
         const body = {
             name: form.name.trim(),
-            description: form.description,
+            description: normalizeQuillHtmlNbsp(form.description),
             photos: photoUrls.map((url, i) => ({ url, order: i })),
         }
         if (!body.name || !body.description.trim()) {
@@ -151,10 +143,13 @@ export function AdminResortsPage() {
                                     „Качи снимка“ (`/uploads/...`).
                                 </FormControl.Helper>
                                 <ReactQuill
+                                    key={editId != null ? String(editId) : 'new-resort'}
                                     theme="snow"
-                                    value={form.description}
-                                    onChange={(value) => setForm((f) => ({ ...f, description: value }))}
-                                    modules={QUILL_MODULES}
+                                    value={form.description ?? ''}
+                                    onChange={(value) =>
+                                        setForm((f) => ({ ...f, description: value ?? '' }))
+                                    }
+                                    modules={ADMIN_QUILL_MODULES}
                                     placeholder="Resort description in English…"
                                     style={{ minHeight: 200 }}
                                 />
