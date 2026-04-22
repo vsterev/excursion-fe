@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
+import { View, Text, FileUpload } from 'reshaped'
 import { notifyAdminUnauthorized } from '../adminSession'
 
 import { API_BASE } from '../api'
@@ -23,7 +24,6 @@ export function ImageUploader({
     enabled = true,
     disabledHint,
 }: Props) {
-    const inputRef = useRef<HTMLInputElement>(null)
     const [uploading, setUploading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -58,42 +58,34 @@ export function ImageUploader({
     }
 
     return (
-        <div className="image-uploader">
-            <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => {
-                    if (!enabled) return
-                    inputRef.current?.click()
-                }}
+        <View gap={2}>
+            <FileUpload
+                name="admin-image-upload"
                 disabled={uploading || !enabled}
-            >
-                {uploading ? 'Качване...' : label}
-            </button>
-            {!enabled && disabledHint ? (
-                <span
-                    style={{
-                        display: 'block',
-                        marginTop: 6,
-                        fontSize: 13,
-                        color: 'var(--text-muted, #6b7280)',
-                    }}
-                >
-                    {disabledHint}
-                </span>
-            ) : null}
-            <input
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) handleFile(file)
-                    e.target.value = ''
+                inputAttributes={{ accept: 'image/*' }}
+                height={{ s: '72px', m: '80px' }}
+                onChange={({ value }) => {
+                    const file = value[0]
+                    if (file) void handleFile(file)
                 }}
-            />
-            {error && <span className="form-error">{error}</span>}
-        </div>
+            >
+                <Text
+                    variant="body-2"
+                    color={uploading || !enabled ? 'neutral-faded' : 'neutral'}
+                >
+                    {uploading ? 'Качване...' : label}
+                </Text>
+            </FileUpload>
+            {!enabled && disabledHint ? (
+                <Text variant="body-2" color="neutral-faded">
+                    {disabledHint}
+                </Text>
+            ) : null}
+            {error ? (
+                <Text variant="body-2" color="critical">
+                    {error}
+                </Text>
+            ) : null}
+        </View>
     )
 }

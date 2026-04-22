@@ -9,6 +9,7 @@ import {
 } from '../../adminApi'
 import { normalizeQuillHtmlNbsp } from '../../richTextNormalize'
 import { ImageUploader } from '../../components/ImageUploader'
+import { AdminGalleryPhotosField } from '../../components/AdminGalleryPhotosField'
 import { View, Text, Button, Loader, TextField, Table, Divider, FormControl } from 'reshaped'
 import { useAdminToast } from '../../hooks/useAdminToast'
 import ReactQuill from 'react-quill-new'
@@ -16,7 +17,7 @@ import 'react-quill-new/dist/quill.snow.css'
 import { ADMIN_QUILL_MODULES } from '../../adminQuillModules'
 
 function emptyForm() {
-    return { name: '', description: '', photos: '' }
+    return { name: '', description: '', photoUrls: [] as string[] }
 }
 
 export function AdminResortsPage() {
@@ -50,7 +51,7 @@ export function AdminResortsPage() {
         setForm({
             name: row.name,
             description: normalizeQuillHtmlNbsp(row.description),
-            photos: (row.photos ?? []).map((p) => p.url).join('\n'),
+            photoUrls: (row.photos ?? []).map((p) => p.url),
         })
         setEditId(row.id)
         setShowForm(true)
@@ -65,7 +66,7 @@ export function AdminResortsPage() {
     async function handleSave() {
         if (!token) return
         setSaving(true)
-        const photoUrls = form.photos.split('\n').map((s) => s.trim()).filter(Boolean)
+        const photoUrls = form.photoUrls.map((s) => s.trim()).filter(Boolean)
         const body = {
             name: form.name.trim(),
             description: normalizeQuillHtmlNbsp(form.description),
@@ -156,36 +157,31 @@ export function AdminResortsPage() {
                             </View>
                             <View gap={1}>
                                 <FormControl.Label>Снимки</FormControl.Label>
-                                <FormControl.Helper>по един URL на ред (локални пътища след качване)</FormControl.Helper>
-                                <textarea
-                                    name="photos"
-                                    rows={4}
-                                    value={form.photos}
-                                    onChange={(e) => setForm((f) => ({ ...f, photos: e.target.value }))}
-                                    style={{
-                                        width: '100%',
-                                        fontFamily: 'monospace',
-                                        fontSize: 13,
-                                        padding: 8,
-                                        borderRadius: 8,
-                                        border: '1px solid var(--border, #ccc)',
-                                    }}
+                                <FormControl.Helper>
+                                    Качване добавя към списъка. Иконката за кошче маха снимката от списъка; файлът се
+                                    изтрива от сървъра при „Запази“.
+                                </FormControl.Helper>
+                                <AdminGalleryPhotosField
+                                    urls={form.photoUrls}
+                                    onUrlsChange={(photoUrls) => setForm((f) => ({ ...f, photoUrls }))}
+                                    uploadSlot={
+                                        <View paddingTop={1}>
+                                            <ImageUploader
+                                                token={token!}
+                                                category="resorts"
+                                                label="Качи снимка от диск"
+                                                enabled={form.name.trim().length > 0}
+                                                disabledHint="Първо въведете името на курорта, после качете снимка."
+                                                onUploaded={(url: string) =>
+                                                    setForm((f) => ({
+                                                        ...f,
+                                                        photoUrls: f.photoUrls.includes(url) ? f.photoUrls : [...f.photoUrls, url],
+                                                    }))
+                                                }
+                                            />
+                                        </View>
+                                    }
                                 />
-                                <View paddingTop={2}>
-                                    <ImageUploader
-                                        token={token!}
-                                        category="resorts"
-                                        label="Качи снимка от диск"
-                                        enabled={form.name.trim().length > 0}
-                                        disabledHint="Първо въведете името на курорта, после качете снимка."
-                                        onUploaded={(url: string) =>
-                                            setForm((f) => ({
-                                                ...f,
-                                                photos: f.photos ? `${f.photos}\n${url}` : url,
-                                            }))
-                                        }
-                                    />
-                                </View>
                             </View>
                             <View direction="row" gap={3}>
                                 <Button
