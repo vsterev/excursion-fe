@@ -10,7 +10,8 @@ import {
 import { type ResortDto } from '../../api'
 import { normalizeQuillHtmlNbsp } from '../../richTextNormalize'
 import { ImageUploader } from '../../components/ImageUploader'
-import { View, Text, Button, Loader, Badge, TextField, TextArea, Table, Divider, Grid, FormControl, Autocomplete, Dismissible } from 'reshaped'
+import { AdminGalleryPhotosField } from '../../components/AdminGalleryPhotosField'
+import { View, Text, Button, Loader, Badge, TextField, Table, Divider, Grid, FormControl, Autocomplete, Dismissible } from 'reshaped'
 import { useAdminToast } from '../../hooks/useAdminToast'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
@@ -22,7 +23,7 @@ function emptyForm() {
         destination: '',
         description: '',
         price: '',
-        photos: '',
+        photoUrls: [] as string[],
     }
 }
 
@@ -101,7 +102,7 @@ export function AdminExcursionsPage() {
             destination: row.destination,
             description: normalizeQuillHtmlNbsp(row.description),
             price: row.price != null ? String(row.price) : '',
-            photos: (row.photos ?? []).map(p => p.url).join('\n'),
+            photoUrls: (row.photos ?? []).map((p) => p.url),
         })
         setEditId(row.id); setShowForm(true)
     }
@@ -114,7 +115,7 @@ export function AdminExcursionsPage() {
     async function handleSave() {
         if (!token) return
         setSaving(true)
-        const photoUrls = form.photos.split('\n').map(s => s.trim()).filter(Boolean)
+        const photoUrls = form.photoUrls.map((s) => s.trim()).filter(Boolean)
         const rawPrice = form.price.trim()
         const parsed = rawPrice === '' ? null : parseFloat(rawPrice.replace(',', '.'))
         const price =
@@ -267,21 +268,31 @@ export function AdminExcursionsPage() {
                             </View>
                             <View gap={1}>
                                 <FormControl.Label>Снимки</FormControl.Label>
-                                <FormControl.Helper>по един URL на ред</FormControl.Helper>
-                                <TextArea name="photos" placeholder="https://..." value={form.photos} onChange={({ value }) => setForm(f => ({ ...f, photos: value }))} />
-                                <View paddingTop={2}>
-                                    <ImageUploader
-                                        token={token!}
-                                        category="excursions"
-                                        label="Качи снимка от диск"
-                                        enabled={form.destination.trim().length > 0}
-                                        disabledHint="Първо въведете destination (заглавие на екскурзията), после качете снимка."
-                                        onUploaded={(url: string) => setForm(f => ({
-                                            ...f,
-                                            photos: f.photos ? f.photos + '\n' + url : url,
-                                        }))}
-                                    />
-                                </View>
+                                <FormControl.Helper>
+                                    Качване добавя към списъка. Премахване от реда изтрива файла от сървъра едва при
+                                    „Запази“. Външен URL: полето „Добави URL“.
+                                </FormControl.Helper>
+                                <AdminGalleryPhotosField
+                                    urls={form.photoUrls}
+                                    onUrlsChange={(photoUrls) => setForm((f) => ({ ...f, photoUrls }))}
+                                    uploadSlot={
+                                        <View paddingTop={1}>
+                                            <ImageUploader
+                                                token={token!}
+                                                category="excursions"
+                                                label="Качи снимка от диск"
+                                                enabled={form.destination.trim().length > 0}
+                                                disabledHint="Първо въведете destination (заглавие на екскурзията), после качете снимка."
+                                                onUploaded={(url: string) =>
+                                                    setForm((f) => ({
+                                                        ...f,
+                                                        photoUrls: f.photoUrls.includes(url) ? f.photoUrls : [...f.photoUrls, url],
+                                                    }))
+                                                }
+                                            />
+                                        </View>
+                                    }
+                                />
                             </View>
                             <View direction="row" gap={3}>
                                 <Button

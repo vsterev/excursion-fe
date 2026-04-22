@@ -48,6 +48,7 @@ export function RepresentativeDetailPage() {
     const r = state.data
     const hotelsList = r.hotels ?? []
     const mapsUrl = `https://www.google.com/maps?q=${r.lat},${r.lng}`
+    const mapsEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(`${r.lat},${r.lng}`)}&hl=${encodeURIComponent(i18n.language)}&z=15&output=embed&iwloc=near`
     const pageTitle = `${r.name} — ${t('nav.representatives')}`
     const metaDesc = [r.name, r.resorts?.map((x) => x.name).join(', '), hotelsList.slice(0, 4).join(', ')]
         .filter(Boolean)
@@ -125,8 +126,10 @@ export function RepresentativeDetailPage() {
                                 title="map"
                                 width="100%"
                                 height="320"
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
                                 style={{ border: 0, borderRadius: 8, display: 'block' }}
-                                src={`https://www.openstreetmap.org/export/embed.html?bbox=${r.lng - 0.02},${r.lat - 0.02},${r.lng + 0.02},${r.lat + 0.02}&layer=mapnik&marker=${r.lat},${r.lng}`}
+                                src={mapsEmbedUrl}
                             />
                             <Text
                                 as="a"

@@ -173,21 +173,6 @@ body { margin: 0; }
 .btn-secondary { background: var(--primary-light); color: var(--primary); }
 .btn-secondary:hover { background: var(--primary); color: #fff; }
 
-/* ── Error text (ImageUploader) ─────────────── */
-.form-error {
-  color: #c53030;
-  font-size: 13px;
-  margin-top: 4px;
-}
-
-/* ── Image uploader ──────────────────────────── */
-.image-uploader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 /* ── Rich text description (Quill HTML) ─────── */
 .excursion-description {
   box-sizing: border-box;
