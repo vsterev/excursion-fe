@@ -7,7 +7,7 @@ import type { RepresentativeDto, ResortDto } from '../api'
 import { Representative } from './Representative'
 
 /** Съвпада с RepresentativesController LANGUAGE_CODES */
-const LANGUAGE_ORDER = ['en', 'ro', 'uk', 'ru'] as const
+const LANGUAGE_ORDER = ['en', 'ro', 'uk', 'ru', 'cs'] as const
 
 type LoadState =
     | { status: 'loading' }

@@ -3,6 +3,26 @@ import { resolvePhotoUrl, type RepresentativeDto } from "../api";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+function LangBadge({ code, variant, color, size }: {
+    code: string
+    variant: 'solid' | 'outline' | 'faded'
+    color: 'primary' | 'neutral'
+    size?: 'small' | 'medium' | 'large'
+}) {
+    const { t } = useTranslation()
+    const fullName = t(`representatives.lang.${code}`, { defaultValue: code.toUpperCase() })
+    return (
+        <Badge
+            variant={variant}
+            color={color}
+            size={size ?? 'medium'}
+            attributes={{ title: fullName }}
+        >
+            {code.toUpperCase()}
+        </Badge>
+    )
+}
+
 export function Representative({ rep }: { rep: RepresentativeDto }) {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -40,7 +60,7 @@ export function Representative({ rep }: { rep: RepresentativeDto }) {
                                     {rep.languages?.length ? (
                                         <View gap={1} direction="row" align="center">
                                             <Text variant="body-2" color="neutral-faded">🌐</Text>
-                                            {rep.languages.map((l) => <Badge key={l} variant={badgeVariant} color={badgeColor}>{l}</Badge>)}
+                                            {rep.languages.map((l) => <LangBadge key={l} code={l} variant={badgeVariant} color={badgeColor} />)}
                                         </View>
                                     ) : null}
                                 </View>
@@ -72,7 +92,7 @@ export function Representative({ rep }: { rep: RepresentativeDto }) {
                         {rep.languages?.length ? (
                             <View gap={1} direction="row" align="center">
                                 <Text variant="body-2" color="neutral-faded">🌐</Text>
-                                {rep.languages.map((l) => <Badge key={l} variant={badgeVariant} color={badgeColor}>{l}</Badge>)}
+                                {rep.languages.map((l) => <LangBadge key={l} code={l} variant={badgeVariant} color={badgeColor} />)}
                             </View>
                         ) : null}
                         {rep.resorts?.length ? (
@@ -126,9 +146,7 @@ export function RepresentativeCompact({ rep }: { rep: RepresentativeDto }) {
                                 {rep.languages?.length ? (
                                     <View direction="row" gap={3}>
                                         {rep.languages.map((l) => (
-                                            <Badge key={l} variant={badgeVariant} size="large" color="primary">
-                                                {l}
-                                            </Badge>
+                                            <LangBadge key={l} code={l} variant={badgeVariant} color="primary" size="large" />
                                         ))}
                                     </View>
                                 ) : null}
@@ -150,9 +168,7 @@ export function RepresentativeCompact({ rep }: { rep: RepresentativeDto }) {
                             <View direction="row" gap={3}>
                                 <Text variant="body-2" color="neutral-faded">🌐</Text>
                                 {rep.languages.map((l) => (
-                                    <Badge key={l} variant={badgeVariant} size="large" color="primary">
-                                        {l}
-                                    </Badge>
+                                    <LangBadge key={l} code={l} variant={badgeVariant} color="primary" size="large" />
                                 ))}
                             </View>
                         ) : null}

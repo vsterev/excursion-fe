@@ -43,10 +43,11 @@ interface RepRow {
 }
 
 const LANG_OPTIONS = [
-    { value: 'en', label: 'English' },
-    { value: 'ro', label: 'Română' },
-    { value: 'uk', label: 'Українська' },
-    { value: 'ru', label: 'Русский' },
+    { value: 'en', label: 'English',    short: 'EN' },
+    { value: 'ro', label: 'Română',     short: 'RO' },
+    { value: 'uk', label: 'Українська', short: 'UK' },
+    { value: 'ru', label: 'Русский',    short: 'RU' },
+    { value: 'cs', label: 'Čeština',    short: 'CS' },
 ]
 
 /** Ако има нов ред — всеки ред е хотел (позволява запетая в името). Иначе — разделяне по запетая. */
@@ -308,9 +309,11 @@ export function AdminRepresentativesPage() {
                                     >
                                         <View direction="row" gap={4} wrap>
                                             {LANG_OPTIONS.map((opt) => (
-                                                <Checkbox key={opt.value} value={opt.value}>
-                                                    {opt.label}
-                                                </Checkbox>
+                                                <span key={opt.value} title={opt.label} style={{ display: 'inline-flex' }}>
+                                                    <Checkbox value={opt.value}>
+                                                        {opt.short}
+                                                    </Checkbox>
+                                                </span>
                                             ))}
                                         </View>
                                     </CheckboxGroup>

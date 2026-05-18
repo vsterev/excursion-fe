@@ -96,6 +96,7 @@ const ro = {
       ro: 'Română',
       uk: 'Ucraineană',
       ru: 'Rusă',
+      cs: 'Cehă',
     },
     noResults: 'Nu au fost găsiți reprezentanți',
     loading: 'Se încarcă...',

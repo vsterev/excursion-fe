@@ -137,8 +137,11 @@ export const fetchRepresentatives = (params?: {
     return apiFetch<RepresentativeDto[]>(`/representatives?${qs}`)
 }
 
-export const fetchResorts = (): Promise<ResortDto[]> =>
-    apiFetch<ResortDto[]>(`/resorts?lang=${lang()}`)
+export const fetchResorts = (options?: { withExcursions?: boolean }): Promise<ResortDto[]> => {
+    const params = new URLSearchParams({ lang: lang() })
+    if (options?.withExcursions) params.set('withExcursions', 'true')
+    return apiFetch<ResortDto[]>(`/resorts?${params}`)
+}
 
 export const fetchResortDetail = (id: number): Promise<ResortDetailDto> =>
     apiFetch<ResortDetailDto>(`/resorts/${id}?lang=${lang()}`)

@@ -68,7 +68,7 @@ export function ExcursionsPage() {
     }, [q])
 
     useEffect(() => {
-        fetchResorts().then(setResortOptions).catch(() => setResortOptions([]))
+        fetchResorts({ withExcursions: true }).then(setResortOptions).catch(() => setResortOptions([]))
     }, [])
 
     const fetchParams = useMemo(

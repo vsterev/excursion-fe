@@ -86,7 +86,11 @@ export function RepresentativeDetailPage() {
                         {
                             r.languages?.length && <View gap={2} direction="row" align="center">
                                 <Text variant="body-2" color="neutral-faded">{t('repDetail.languagesLabel')}</Text>
-                                {r.languages.map((l) => <Badge key={l} variant={badgeVariant} size="large" color={badgeColor}>{l}</Badge>)}
+                                {r.languages.map((l) => (
+                                    <Badge key={l} variant={badgeVariant} size="large" color={badgeColor} attributes={{ title: t(`representatives.lang.${l}`, { defaultValue: l.toUpperCase() }) }}>
+                                        {l.toUpperCase()}
+                                    </Badge>
+                                ))}
                             </View>
 
                         }
