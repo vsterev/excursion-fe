@@ -76,6 +76,7 @@ export const adminListExcursions = (t: string) => req<unknown[]>('GET', '/admin/
 export const adminCreateExcursion = (t: string, body: unknown) => req<{ id: string }>('POST', '/admin/excursions', t, body)
 export const adminUpdateExcursion = (t: string, id: string, body: unknown) => req<{ ok: boolean }>('PUT', `/admin/excursions/${id}`, t, body)
 export const adminDeleteExcursion = (t: string, id: string) => req<{ ok: boolean }>('DELETE', `/admin/excursions/${id}`, t)
+export const adminReorderExcursions = (t: string, ids: string[]) => req<{ ok: boolean }>('POST', '/admin/excursions/reorder', t, { ids })
 
 // ── Representatives ────────────────────────────
 export const adminListRepresentatives = (t: string) => req<unknown[]>('GET', '/admin/representatives', t)

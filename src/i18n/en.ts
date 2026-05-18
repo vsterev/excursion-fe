@@ -96,6 +96,7 @@ const en = {
       ro: 'Romanian',
       uk: 'Ukrainian',
       ru: 'Russian',
+      cs: 'Czech',
     },
     noResults: 'No representatives found',
     loading: 'Loading...',
