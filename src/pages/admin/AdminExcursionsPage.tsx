@@ -19,12 +19,44 @@ import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 import { ADMIN_QUILL_MODULES } from '../../adminQuillModules'
 
+const WEEKDAYS = [
+    { day: 1, label: 'Пон' },
+    { day: 2, label: 'Вт' },
+    { day: 3, label: 'Ср' },
+    { day: 4, label: 'Чет' },
+    { day: 5, label: 'Пет' },
+    { day: 6, label: 'Съб' },
+    { day: 0, label: 'Нед' },
+]
+
+function generateDates(from: string, to: string, days: number[]): string[] {
+    if (!from || !to || days.length === 0) return []
+    const [fy, fm, fd] = from.split('-').map(Number)
+    const [ty, tm, td] = to.split('-').map(Number)
+    const start = new Date(fy, fm - 1, fd)
+    const end = new Date(ty, tm - 1, td)
+    if (start > end) return []
+    const result: string[] = []
+    const cur = new Date(start)
+    while (cur <= end) {
+        if (days.includes(cur.getDay())) {
+            const y = cur.getFullYear()
+            const m = String(cur.getMonth() + 1).padStart(2, '0')
+            const d = String(cur.getDate()).padStart(2, '0')
+            result.push(`${y}-${m}-${d}`)
+        }
+        cur.setDate(cur.getDate() + 1)
+    }
+    return result
+}
+
 function emptyForm() {
     return {
         resortIds: [] as number[],
         destination: '',
         description: '',
         price: '',
+        departureDates: [] as string[],
         photoUrls: [] as string[],
     }
 }
@@ -34,6 +66,7 @@ interface ExcursionRow {
     destination: string
     description: string
     price: number | null
+    departureDates: string[] | null
     departures: { id: number; name: string }[]
     photos: { url: string; caption?: string; order?: number }[]
 }
@@ -55,6 +88,12 @@ export function AdminExcursionsPage() {
     const [reorderDragging, setReorderDragging] = useState<number | null>(null)
     const [reorderDragOver, setReorderDragOver] = useState<number | null>(null)
     const reorderDragRef = useRef<number | null>(null)
+    const [newDateInput, setNewDateInput] = useState('')
+    const [genFrom, setGenFrom] = useState('')
+    const [genTo, setGenTo] = useState('')
+    const [genDays, setGenDays] = useState<number[]>([])
+    const [formRemoveMode, setFormRemoveMode] = useState(false)
+    const [formMarkedDates, setFormMarkedDates] = useState<Set<string>>(new Set())
 
     useEffect(() => {
         if (!token) return
@@ -97,9 +136,16 @@ export function AdminExcursionsPage() {
         })
     }, [resortChoices, form.resortIds, resortQuery])
 
+    function resetGen() {
+        setGenFrom(''); setGenTo(''); setGenDays([])
+    }
+
     function closeForm() {
         setShowForm(false)
         setResortQuery('')
+        resetGen()
+        setFormRemoveMode(false)
+        setFormMarkedDates(new Set())
     }
 
     function openReorderMode() {
@@ -111,6 +157,24 @@ export function AdminExcursionsPage() {
     function closeReorderMode() {
         setReorderMode(false)
         setReorderIds([])
+    }
+
+    function toggleFormDate(d: string) {
+        setFormMarkedDates(prev => {
+            const next = new Set(prev)
+            if (next.has(d)) {
+                next.delete(d)
+            } else {
+                next.add(d)
+            }
+            return next
+        })
+    }
+
+    function applyFormRemove() {
+        setForm(f => ({ ...f, departureDates: f.departureDates.filter(d => !formMarkedDates.has(d)) }))
+        setFormRemoveMode(false)
+        setFormMarkedDates(new Set())
     }
 
     async function saveReorder() {
@@ -172,12 +236,16 @@ export function AdminExcursionsPage() {
 
     function startEdit(row: ExcursionRow) {
         setResortQuery('')
+        resetGen()
+        setFormRemoveMode(false)
+        setFormMarkedDates(new Set())
         setForm({
             ...emptyForm(),
             resortIds: (row.departures ?? []).map((s) => Number(s.id)).filter(Number.isFinite),
             destination: row.destination,
             description: normalizeQuillHtmlNbsp(row.description),
             price: row.price != null ? String(row.price) : '',
+            departureDates: row.departureDates ?? [],
             photoUrls: (row.photos ?? []).map((p) => p.url),
         })
         setEditId(row.id); setShowForm(true)
@@ -185,6 +253,7 @@ export function AdminExcursionsPage() {
 
     function startNew() {
         setResortQuery('')
+        resetGen()
         setForm(emptyForm()); setEditId(null); setShowForm(true)
     }
 
@@ -202,6 +271,7 @@ export function AdminExcursionsPage() {
             destination: form.destination,
             description: normalizeQuillHtmlNbsp(form.description),
             price,
+            departureDates: form.departureDates.length > 0 ? form.departureDates : null,
             photos: photoUrls.map((url, i) => ({ url, order: i })),
         }
         try {
@@ -274,6 +344,171 @@ export function AdminExcursionsPage() {
                                         onChange={({ value }) => setForm((f) => ({ ...f, price: value }))}
                                         inputAttributes={{ type: 'text', inputMode: 'decimal', autoComplete: 'off' }}
                                     />
+                                </View>
+                                <View gap={2} attributes={{ style: { gridColumn: '1 / -1' } }}>
+                                    <FormControl.Label>Дати на тръгване (незадължително)</FormControl.Label>
+                                    <FormControl.Helper>Добави конкретни дати, от които тръгва екскурзията. Клиентите ще могат да изберат дата при резервация.</FormControl.Helper>
+                                    {form.departureDates.length > 0 && (
+                                        <View direction="row" gap={2} wrap>
+                                            {form.departureDates.map((d) => {
+                                                const [y, m, day] = d.split('-').map(Number)
+                                                const label = new Date(y, m - 1, day).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'long' })
+                                                const marked = formRemoveMode && formMarkedDates.has(d)
+                                                return (
+                                                    <Badge
+                                                        key={d}
+                                                        variant={marked ? 'solid' : 'outline'}
+                                                        color={marked ? 'critical' : 'primary'}
+                                                        size="large"
+                                                        attributes={formRemoveMode ? {
+                                                            onClick: () => toggleFormDate(d),
+                                                            style: { cursor: 'pointer' },
+                                                        } : undefined}
+                                                    >
+                                                        {formRemoveMode ? label : (
+                                                            <View direction="row" gap={1} align="center">
+                                                                <Text variant="body-2" color="primary">{label}</Text>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setForm((f) => ({ ...f, departureDates: f.departureDates.filter((x) => x !== d) }))}
+                                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', lineHeight: 1, color: 'inherit' }}
+                                                                    aria-label={`Премахни дата ${d}`}
+                                                                >✕</button>
+                                                            </View>
+                                                        )}
+                                                    </Badge>
+                                                )
+                                            })}
+                                        </View>
+                                    )}
+                                    {/* Генериране по период */}
+                                    <View gap={2} padding={3} attributes={{ style: { background: 'var(--rs-color-background-neutral-faded, #f5f5f5)', borderRadius: 8 } }}>
+                                        <Text variant="body-2" weight="bold">Генерирай по период</Text>
+                                        <Grid columns={{ s: 1, m: 2 }} gap={3}>
+                                            <View gap={1}>
+                                                <FormControl.Label>От</FormControl.Label>
+                                                <TextField
+                                                    name="genFrom"
+                                                    value={genFrom}
+                                                    onChange={({ value }) => setGenFrom(value)}
+                                                    inputAttributes={{ type: 'date' }}
+                                                />
+                                            </View>
+                                            <View gap={1}>
+                                                <FormControl.Label>До</FormControl.Label>
+                                                <TextField
+                                                    name="genTo"
+                                                    value={genTo}
+                                                    onChange={({ value }) => setGenTo(value)}
+                                                    inputAttributes={{ type: 'date' }}
+                                                />
+                                            </View>
+                                        </Grid>
+                                        <View gap={1}>
+                                            <FormControl.Label>Дни от седмицата</FormControl.Label>
+                                            <View direction="row" gap={3} wrap>
+                                                {WEEKDAYS.map(({ day, label }) => (
+                                                    <label key={day} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={genDays.includes(day)}
+                                                            onChange={() => setGenDays(prev =>
+                                                                prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+                                                            )}
+                                                        />
+                                                        <Text variant="body-2">{label}</Text>
+                                                    </label>
+                                                ))}
+                                                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={genDays.length === 7}
+                                                        onChange={() => setGenDays(genDays.length === 7 ? [] : [0, 1, 2, 3, 4, 5, 6])}
+                                                    />
+                                                    <Text variant="body-2" weight="bold">Всеки ден</Text>
+                                                </label>
+                                            </View>
+                                        </View>
+                                        <View direction="row" gap={2} align="center">
+                                            <Button
+                                                type="button"
+                                                variant="solid"
+                                                color="primary"
+                                                disabled={!genFrom || !genTo || genDays.length === 0}
+                                                onClick={() => {
+                                                    const generated = generateDates(genFrom, genTo, genDays)
+                                                    if (generated.length === 0) return
+                                                    setForm(f => ({
+                                                        ...f,
+                                                        departureDates: [...new Set([...f.departureDates, ...generated])].sort()
+                                                    }))
+                                                }}
+                                            >
+                                                Генерирай
+                                            </Button>
+                                            {genFrom && genTo && genDays.length > 0 && (
+                                                <Text variant="body-2" color="neutral-faded">
+                                                    {generateDates(genFrom, genTo, genDays).length} дати
+                                                </Text>
+                                            )}
+                                        </View>
+                                    </View>
+
+                                    {/* Добавяне на единична дата */}
+                                    <View direction="row" gap={2} align="end">
+                                        <View grow>
+                                            <TextField
+                                                name="newDate"
+                                                value={newDateInput}
+                                                onChange={({ value }) => setNewDateInput(value)}
+                                                inputAttributes={{ type: 'date' }}
+                                            />
+                                        </View>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            color="primary"
+                                            onClick={() => {
+                                                const d = newDateInput.trim()
+                                                if (!d || form.departureDates.includes(d)) return
+                                                setForm((f) => ({ ...f, departureDates: [...f.departureDates, d].sort() }))
+                                                setNewDateInput('')
+                                            }}
+                                        >
+                                            + Добави дата
+                                        </Button>
+                                        {!formRemoveMode && form.departureDates.length > 0 && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                color="critical"
+                                                onClick={() => { setFormRemoveMode(true); setFormMarkedDates(new Set()) }}
+                                            >
+                                                Премахни дати
+                                            </Button>
+                                        )}
+                                        {formRemoveMode && (
+                                            <>
+                                                <Button
+                                                    type="button"
+                                                    variant="solid"
+                                                    color="critical"
+                                                    disabled={formMarkedDates.size === 0}
+                                                    onClick={applyFormRemove}
+                                                >
+                                                    Изтрий маркираните ({formMarkedDates.size})
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    color="neutral"
+                                                    onClick={() => { setFormRemoveMode(false); setFormMarkedDates(new Set()) }}
+                                                >
+                                                    Отказ
+                                                </Button>
+                                            </>
+                                        )}
+                                    </View>
                                 </View>
                                 <View gap={1} attributes={{ style: { gridColumn: '1 / -1' } }}>
                                     <FormControl.Label>Тръгване от (курорти)</FormControl.Label>

@@ -94,8 +94,19 @@ export function ResortDetailPage() {
     const x = state.data
     const photos = x.photos ?? []
     const mainSrc = photos[activePhoto] ? resolvePhotoUrl(photos[activePhoto].url) : null
+    const coverPhotoAbsolute = photos[0] ? resolvePhotoUrl(photos[0].url) : null
     const pageTitle = `${x.name} — ${t('nav.resorts')}`
     const metaDesc = stripHtml(normalizeQuillHtmlNbsp(x.description)).slice(0, 158)
+
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'TouristDestination',
+        name: x.name,
+        description: metaDesc,
+        ...(coverPhotoAbsolute ? { image: coverPhotoAbsolute } : {}),
+        address: { '@type': 'PostalAddress', addressCountry: 'BG' },
+        touristType: 'Beach tourism',
+    }
 
     return (
         <>
@@ -104,6 +115,10 @@ export function ResortDetailPage() {
                 <meta name="description" content={metaDesc} />
                 <meta property="og:title" content={pageTitle} />
                 <meta property="og:description" content={metaDesc} />
+                {coverPhotoAbsolute && <meta property="og:image" content={coverPhotoAbsolute} />}
+                {coverPhotoAbsolute && <meta name="twitter:image" content={coverPhotoAbsolute} />}
+                <meta name="twitter:card" content="summary_large_image" />
+                <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
             </Helmet>
             <View maxWidth="1200px" gap={4} width="100%" paddingInline={{ s: 4, m: 6 }} paddingBlock={{ s: 5, m: 8 }} attributes={{ style: { margin: '0 auto' } }}>
                 <View justify="space-between" direction="row" align="center">

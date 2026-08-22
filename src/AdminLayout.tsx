@@ -4,6 +4,7 @@ import { View, Text, Button, Divider, ToastProvider, MenuItem } from 'reshaped'
 
 const NAV = [
     { to: '/admin/excursions', icon: '🗺️', label: 'Екскурзии' },
+    { to: '/admin/reservations', icon: '🎟️', label: 'Резервации' },
     { to: '/admin/resorts', icon: '🏖️', label: 'Курорти' },
     { to: '/admin/representatives', icon: '👥', label: 'Представители' },
     { to: '/admin/useful-info', icon: 'ℹ️', label: 'Полезна информация' },

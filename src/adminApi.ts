@@ -90,6 +90,65 @@ export const adminCreateUsefulInfo = (t: string, body: unknown) => req<{ id: str
 export const adminUpdateUsefulInfo = (t: string, id: string, body: unknown) => req<{ ok: boolean }>('PUT', `/admin/useful-info/${id}`, t, body)
 export const adminDeleteUsefulInfo = (t: string, id: string) => req<{ ok: boolean }>('DELETE', `/admin/useful-info/${id}`, t)
 
+// ── Reservations ───────────────────────────────
+export type ReservationStatus = 'waiting' | 'confirmed' | 'refunded'
+
+export type ReservationDto = {
+    id: string
+    excursionId: string
+    excursionName: string
+    touristCount: number
+    holderName: string
+    email: string
+    phone: string
+    excursionDate: string | null
+    totalPrice: number | null
+    notes: string | null
+    status: ReservationStatus
+    createdAt: string
+    paymentOrderId: string | null
+    refundOrderId: string | null
+}
+
+export type ReservationsListResponse = {
+    items: ReservationDto[]
+    total: number
+}
+
+export type ReservationsFilter = {
+    reservationDateFrom?: string
+    reservationDateTo?: string
+    excursionDateFrom?: string
+    excursionDateTo?: string
+    name?: string
+    phone?: string
+    excursionName?: string
+    limit?: number
+    offset?: number
+}
+
+export function adminListReservations(token: string, filter: ReservationsFilter = {}): Promise<ReservationsListResponse> {
+    const qs = new URLSearchParams()
+    if (filter.reservationDateFrom) qs.set('reservationDateFrom', filter.reservationDateFrom)
+    if (filter.reservationDateTo) qs.set('reservationDateTo', filter.reservationDateTo)
+    if (filter.excursionDateFrom) qs.set('excursionDateFrom', filter.excursionDateFrom)
+    if (filter.excursionDateTo) qs.set('excursionDateTo', filter.excursionDateTo)
+    if (filter.name) qs.set('name', filter.name)
+    if (filter.phone) qs.set('phone', filter.phone)
+    if (filter.excursionName) qs.set('excursionName', filter.excursionName)
+    if (filter.limit != null) qs.set('limit', String(filter.limit))
+    if (filter.offset != null) qs.set('offset', String(filter.offset))
+    return req<ReservationsListResponse>('GET', `/admin/reservations?${qs}`, token)
+}
+
+export const adminUpdateReservationStatus = (t: string, id: string, status: 'waiting' | 'confirmed') =>
+    req<{ ok: boolean; status: ReservationStatus }>('PATCH', `/admin/reservations/${id}/status`, t, { status })
+export const adminDeleteReservation = (t: string, id: string) => req<{ ok: boolean }>('DELETE', `/admin/reservations/${id}`, t)
+export const adminSyncRevolutPayments = (t: string) =>
+    req<{ checked: number; confirmed: number; errors: number }>('POST', '/admin/reservations/sync-revolut', t)
+export const adminRefundReservation = (t: string, id: string) =>
+    req<{ ok: boolean; refundOrderId: string }>('POST', `/admin/reservations/${id}/refund`, t)
+
 // ── Resorts ─────────────────────────────────────
 export type AdminResortRow = {
     id: number

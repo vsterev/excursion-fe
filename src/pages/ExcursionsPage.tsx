@@ -250,6 +250,7 @@ export function ExcursionsPage() {
                                         <img
                                             src={resolvePhotoUrl(x.coverPhoto) ?? ''}
                                             alt={x.destination}
+                                            loading="lazy"
                                             style={{ width: '100%', maxHeight: '230px', objectFit: 'cover' }}
                                         />
                                     ) : (
@@ -273,6 +274,19 @@ export function ExcursionsPage() {
                                                 📍 {t('excursions.departure')} {x.departures.map(d => d.name).join(', ')}
                                             </Text>
                                         )}
+                                        {x.departureDates && x.departureDates.length > 0 && (() => {
+                                            const today = new Date(); today.setHours(0,0,0,0)
+                                            const next = x.departureDates.find(d => { const [y,m,day] = d.split('-').map(Number); return new Date(y,m-1,day) >= today })
+                                            if (!next) return null
+                                            const [y,m,day] = next.split('-').map(Number)
+                                            const label = new Date(y,m-1,day).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+                                            return (
+                                                <Text variant="body-2" color="neutral-faded">
+                                                    📅 {label}
+                                                    {x.departureDates!.length > 1 ? ` +${x.departureDates!.length - 1}` : ''}
+                                                </Text>
+                                            )
+                                        })()}
                                         <Text variant="body-1" color="neutral-faded" attributes={{ style: { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } }}>
                                             {stripHtml(x.description)}
                                         </Text>

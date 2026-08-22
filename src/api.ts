@@ -20,6 +20,7 @@ export type ExcursionDto = {
     description: string
     date: string | null
     price: number | null
+    departureDates: string[] | null
     coverPhoto: string | null
     departures: ResortDto[]
 }
@@ -154,4 +155,86 @@ export const fetchUsefulInfo = (params?: { resort?: string; category?: string })
     if (params?.resort) qs.set('resort', params.resort)
     if (params?.category) qs.set('category', params.category)
     return apiFetch<UsefulInfoDto[]>(`/useful-info?${qs}`)
+}
+
+export type ReservationTicketDto = {
+    id: string
+    holderName: string
+    email: string
+    phone: string
+    touristCount: number
+    excursionDate: string | null
+    totalPrice: number | null
+    notes: string | null
+    status: 'waiting' | 'confirmed'
+    createdAt: string
+    excursion: {
+        id: string
+        destination: string
+        price: number | null
+        coverPhoto: string | null
+        departures: { id: number; name: string }[]
+    }
+}
+
+export type ReservationCreateBody = {
+    excursionId: string
+    touristCount: number
+    holderName: string
+    email: string
+    phone: string
+    excursionDate?: string | null
+    notes?: string | null
+}
+
+export async function verifyReservation(id: string, email: string): Promise<ReservationTicketDto> {
+    const res = await fetch(`${API_BASE}/reservations/${encodeURIComponent(id)}/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+    })
+    if (!res.ok) {
+        if (res.status === 403) throw new Error('email_mismatch')
+        if (res.status === 404) throw new Error('not_found')
+        const raw = await res.text()
+        let msg = `${res.status} ${res.statusText}`
+        try { const err = JSON.parse(raw) as { message?: string }; if (err?.message) msg = err.message } catch { /* not JSON */ }
+        throw new Error(msg)
+    }
+    return res.json() as Promise<ReservationTicketDto>
+}
+
+export async function createPaymentOrder(
+    reservationId: string
+): Promise<{ token: string; mode: 'sandbox' | 'prod' }> {
+    const res = await fetch(`${API_BASE}/payments/revolut/create-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reservationId }),
+    })
+    if (!res.ok) {
+        const raw = await res.text()
+        let msg = `${res.status} ${res.statusText}`
+        try { const err = JSON.parse(raw) as { message?: string }; if (err?.message) msg = err.message } catch { /* not JSON */ }
+        throw new Error(msg)
+    }
+    return res.json() as Promise<{ token: string; mode: 'sandbox' | 'prod' }>
+}
+
+export async function createReservation(body: ReservationCreateBody): Promise<{ id: string }> {
+    const res = await fetch(`${API_BASE}/reservations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+        const raw = await res.text()
+        let msg = `${res.status} ${res.statusText}`
+        try {
+            const err = JSON.parse(raw) as { message?: string }
+            if (err?.message) msg = err.message
+        } catch { /* not JSON */ }
+        throw new Error(msg)
+    }
+    return res.json() as Promise<{ id: string }>
 }

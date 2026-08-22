@@ -38,7 +38,16 @@ const AdminUsefulInfoPage = lazy(() =>
 const AdminResortsPage = lazy(() =>
   import('./pages/admin/AdminResortsPage').then((m) => ({ default: m.AdminResortsPage })),
 )
+const AdminReservationsPage = lazy(() =>
+  import('./pages/admin/AdminReservationsPage').then((m) => ({ default: m.AdminReservationsPage })),
+)
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
+const BookingCheckPage = lazy(() =>
+  import('./pages/BookingCheckPage').then((m) => ({ default: m.BookingCheckPage })),
+)
+const BookingPaymentResultPage = lazy(() =>
+  import('./pages/BookingPaymentResultPage').then((m) => ({ default: m.BookingPaymentResultPage })),
+)
 
 function RouteFallback() {
   return (
@@ -68,6 +77,11 @@ function AppRoutes() {
         {/* Public useful-info: not linked in nav/home for now; URL + admin CRUD remain for later use */}
         <Route path="/useful-info" element={<UsefulInfoPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/booking/:id" element={<BookingCheckPage />} />
+        <Route path="/booking" element={<BookingCheckPage />} />
+        <Route path="/booking/payment/success" element={<BookingPaymentResultPage result="success" />} />
+        <Route path="/booking/payment/failure" element={<BookingPaymentResultPage result="failure" />} />
+        <Route path="/booking/payment/cancel" element={<BookingPaymentResultPage result="cancel" />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
@@ -78,6 +92,7 @@ function AppRoutes() {
       <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
         <Route index element={<Navigate to="/admin/excursions" replace />} />
         <Route path="excursions" element={<AdminExcursionsPage />} />
+        <Route path="reservations" element={<AdminReservationsPage />} />
         <Route path="representatives" element={<AdminRepresentativesPage />} />
         <Route path="useful-info" element={<AdminUsefulInfoPage />} />
         <Route path="resorts" element={<AdminResortsPage />} />

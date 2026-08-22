@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { SOLVEX_LOGO_SRC } from '../branding'
 
+const SITE_URL = ((import.meta.env.VITE_SITE_URL as string | undefined) ?? '').replace(/\/$/, '')
+
 function seoForPath(pathname: string): { titleKey: string; descKey: string } {
     if (pathname === '/') return { titleKey: 'seo.homeTitle', descKey: 'seo.homeDescription' }
     if (pathname === '/excursions') {
@@ -49,15 +51,24 @@ export function SiteHelmet() {
     const title = t(titleKey)
     const description = t(descKey)
     const lang = (i18n.resolvedLanguage ?? 'en').slice(0, 2)
+    const isAdmin = location.pathname.startsWith('/admin')
+
+    const canonicalUrl = SITE_URL ? `${SITE_URL}${location.pathname}` : ''
+    const logoUrl = SITE_URL ? `${SITE_URL}${SOLVEX_LOGO_SRC}` : SOLVEX_LOGO_SRC
 
     return (
         <Helmet htmlAttributes={{ lang }} prioritizeSeoTags>
             <title>{title}</title>
             <meta name="description" content={description} />
+            {isAdmin && <meta name="robots" content="noindex, nofollow" />}
+            {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
             <meta property="og:title" content={title} />
             <meta property="og:description" content={description} />
             <meta property="og:type" content="website" />
-            <meta name="twitter:card" content="summary" />
+            <meta property="og:image" content={logoUrl} />
+            {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:image" content={logoUrl} />
             <link rel="icon" href={SOLVEX_LOGO_SRC} type="image/png" />
         </Helmet>
     )

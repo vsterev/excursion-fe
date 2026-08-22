@@ -1,0 +1,29 @@
+# Solvex Tourist Agency
+
+> Solvex is a tourist agency operating on the Bulgarian Black Sea coast. This website is a catalog of excursions and a directory of local tour representatives for foreign tourists visiting Bulgaria. Tourists access the site by scanning QR codes placed at hotel receptions.
+
+## Language support
+
+The site is available in English (en), Romanian (ro), Russian (ru), and Ukrainian (uk). Append `?lang=ro` (or ru / uk) to any URL to retrieve content in that language.
+
+## Main sections
+
+- [Home](/) — Overview of the agency's excursions and services
+- [Excursions](/excursions) — Full catalog of tours with prices, departure dates, and departure resorts
+- [Resorts](/resorts) — Informational pages about Black Sea resorts where the agency operates (Nessebar, Sunny Beach, Sozopol, etc.)
+- [Representatives](/representatives) — Contact directory of local tour guides and representatives, including phone, WhatsApp, languages spoken, and hotels served
+- [Useful Info](/useful-info) — Practical travel tips and resort-specific information for tourists
+
+## Booking
+
+Tourists can reserve excursions directly on the site. Payments are processed via Revolut. After booking, tourists receive a confirmation reference number and can pay online or on-site.
+
+## Public API
+
+A REST API is available at `/api` (JSON):
+- `GET /api/excursions` — list of excursions (supports `?lang=`, `?resortId=`, `?q=` search)
+- `GET /api/excursions/{id}` — excursion detail with photos and departure info
+- `GET /api/resorts` — list of resorts
+- `GET /api/resorts/{id}` — resort detail with photos
+- `GET /api/representatives` — list of representatives (supports `?resortId=`, `?language=`)
+- `GET /api/sitemap.xml` — XML sitemap with all public URLs
